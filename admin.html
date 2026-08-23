@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sound Advice — results</title>
+<link rel="stylesheet" href="styles.css">
+<script src="firebase-config.js"></script>
+<style>
+  #app { max-width: 62rem; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em;
+       text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .tablewrap { overflow-x: auto; }
+  .finding { border-left: 3px solid var(--accent); padding-left: 14px; }
+  .finding b { font-size: 1.5rem; display: block; letter-spacing: -0.02em; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section class="screen active" id="gate">
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:22rem;margin:0 auto">
+      <h1 class="brand">Results</h1>
+      <p class="small">Everyone's data, pooled. Only you should be able to open this.</p>
+      <input id="code" type="password" placeholder="Access code" autocomplete="off">
+      <p class="err" id="gateErr"></p>
+      <button class="btn btn-primary" id="enter">Open</button>
+    </div>
+  </section>
+
+  <section class="screen" id="dash">
+    <div class="row-between">
+      <h1 class="brand" style="font-size:1.4rem">Results</h1>
+      <button class="btn btn-ghost btn-sm" id="refresh">Refresh</button>
+    </div>
+    <p class="small" id="source"></p>
+
+    <div class="grid" id="tiles"></div>
+
+    <h2 style="margin-top:12px">The question</h2>
+    <div class="card stack" id="findings"></div>
+
+    <h2 style="margin-top:12px">By sound</h2>
+    <div class="card tablewrap"><table id="bySound"></table></div>
+
+    <h2 style="margin-top:12px">By person</h2>
+    <div class="card tablewrap"><table id="byUser"></table></div>
+
+    <h2 style="margin-top:12px">Download</h2>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" data-dl="users">Users CSV</button>
+      <button class="btn btn-ghost btn-sm" data-dl="sessions">Sessions CSV</button>
+      <button class="btn btn-ghost btn-sm" data-dl="tests">Tests CSV</button>
+    </div>
+    <p class="tiny">Download a copy every few days during the trial. A spreadsheet on your
+      laptop is what saves you if anything goes wrong with the hosting.</p>
+  </section>
+
+</div>
+
+<script type="module">
+import * as store from './js/store.js';
+import { SOUNDS, soundById } from './js/audio.js';
+
+const $ = id => document.getElementById(id);
+let data = null;
+
+const nm = id => (soundById(id) || {}).name || id;
+const mean = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+const r1 = v => v === null ? '—' : v.toFixed(1);
+
+$('enter').addEventListener('click', open);
+$('code').addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+$('refresh').addEventListener('click', load);
+
+async function open() {
+  if ($('code').value !== (window.SA_ADMIN_CODE || 'lily2026')) {
+    $('gateErr').textContent = 'Not that one.';
+    return;
+  }
+  $('gate').classList.remove('active');
+  $('dash').classList.add('active');
+  await store.initBackend();
+  load();
+}
+
+async function load() {
+  data = await store.fetchAll();
+  $('source').textContent = data.local
+    ? 'Firebase is not set up yet — showing only this device.'
+    : `Live from Firebase · loaded ${new Date().toLocaleTimeString()}`;
+  tiles(); findings(); bySound(); byUser();
+}
+
+function activeUsers() {
+  const week = Date.now() - 7 * 864e5;
+  const ids = new Set(data.sessions.filter(s => s.startedAt > week).map(s => s.userId));
+  return ids.size;
+}
+
+function tiles() {
+  const sessions = data.sessions.filter(s => s.outcome !== 'abandoned');
+  const minutes = sessions.reduce((a, s) => a + (s.actualMinutes || 0), 0);
+  const returned = new Set();
+  const byUser = {};
+  sessions.forEach(s => (byUser[s.userId] = (byUser[s.userId] || 0) + 1));
+  Object.entries(byUser).forEach(([u, n]) => n >= 2 && returned.add(u));
+
+  const t = [
+    ['Signed up', data.users.length],
+    ['Studied at least once', Object.keys(byUser).length],
+    ['Came back (2+)', returned.size],
+    ['Active this week', activeUsers()],
+    ['Sessions', sessions.length],
+    ['Hours studied', (minutes / 60).toFixed(1)],
+    ['Tests taken', data.tests.length]
+  ];
+  $('tiles').innerHTML = t.map(([k, v]) =>
+    `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
+}
+
+/* The three findings the project exists to produce. */
+function findings() {
+  const sessions = data.sessions.filter(s => s.outcome !== 'abandoned');
+  const out = [];
+
+  // --- best tested sound, per person
+  const testsBy = {};
+  data.tests.forEach(t => {
+    testsBy[t.userId] = testsBy[t.userId] || {};
+    (testsBy[t.userId][t.soundId] = testsBy[t.userId][t.soundId] || []).push(t.dprime);
+  });
+  const bestFor = {};
+  for (const [u, sounds] of Object.entries(testsBy)) {
+    const ranked = Object.entries(sounds)
+      .map(([id, ds]) => [id, mean(ds)])
+      .sort((a, b) => b[1] - a[1]);
+    if (ranked.length >= 2) bestFor[u] = ranked[0][0];
+  }
+
+  // --- does the sound people use match the one that tests best?
+  const minutesBy = {};
+  sessions.forEach(s => {
+    minutesBy[s.userId] = minutesBy[s.userId] || {};
+    minutesBy[s.userId][s.soundId] = (minutesBy[s.userId][s.soundId] || 0) + (s.actualMinutes || 0);
+  });
+  let match = 0, comparable = 0;
+  for (const [u, best] of Object.entries(bestFor)) {
+    const mins = minutesBy[u];
+    if (!mins) continue;
+    comparable++;
+    const most = Object.entries(mins).sort((a, b) => b[1] - a[1])[0][0];
+    if (most === best) match++;
+  }
+  out.push({
+    big: comparable ? `${Math.round((match / comparable) * 100)}%` : '—',
+    text: comparable
+      ? `of the ${comparable} ${comparable === 1 ? 'person' : 'people'} with both a test result and
+         study sessions ${comparable === 1 ? 'actually studies' : 'actually study'} most with the
+         sound that tested best for them. The 2025 pilot found 43% could predict it.`
+      : 'Nobody has both a test result and study sessions yet.'
+  });
+
+  // --- do sessions on the best sound get rated higher? (within-person)
+  const diffs = [];
+  for (const [u, best] of Object.entries(bestFor)) {
+    const mine = sessions.filter(s => s.userId === u && s.rating);
+    const on = mine.filter(s => s.soundId === best).map(s => s.rating);
+    const off = mine.filter(s => s.soundId !== best).map(s => s.rating);
+    if (on.length >= 2 && off.length >= 2) diffs.push(mean(on) - mean(off));
+  }
+  const d = mean(diffs);
+  out.push({
+    big: d === null ? '—' : (d > 0 ? '+' : '') + d.toFixed(2),
+    text: d === null
+      ? 'Nobody yet has enough rated sessions both on and off their best sound. Needs 2 of each.'
+      : `average difference in session rating when people use their best-tested sound versus any
+         other, compared within each person (${diffs.length} ${diffs.length === 1 ? 'person' : 'people'}).
+         Positive means the tested best sound really does feel better.`
+  });
+
+  // --- does everyone have the same best sound?
+  const spread = {};
+  Object.values(bestFor).forEach(id => spread[id] = (spread[id] || 0) + 1);
+  const top = Object.entries(spread).sort((a, b) => b[1] - a[1])[0];
+  const n = Object.keys(bestFor).length;
+  out.push({
+    big: top ? `${Math.round((top[1] / n) * 100)}%` : '—',
+    text: top
+      ? `share the same best sound (${nm(top[0])}, ${top[1]} of ${n}). Below 50% supports the
+         pilot's finding that the best sound is individual, not universal.`
+      : 'Not enough people have tested two or more sounds yet.'
+  });
+
+  $('findings').innerHTML = out.map(f =>
+    `<div class="finding"><b>${f.big}</b><span class="small">${f.text}</span></div>`).join('');
+}
+
+function bySound() {
+  const sessions = data.sessions.filter(s => s.outcome !== 'abandoned');
+  const rows = SOUNDS.map(s => {
+    const ss = sessions.filter(x => x.soundId === s.id);
+    const rated = ss.filter(x => x.rating).map(x => x.rating);
+    const ts = data.tests.filter(x => x.soundId === s.id);
+    const abandoned = data.sessions.filter(x => x.soundId === s.id && x.outcome === 'abandoned').length;
+    return {
+      name: s.name,
+      sessions: ss.length,
+      people: new Set(ss.map(x => x.userId)).size,
+      minutes: Math.round(ss.reduce((a, x) => a + (x.actualMinutes || 0), 0)),
+      rating: mean(rated),
+      abandoned,
+      tests: ts.length,
+      dprime: mean(ts.map(t => t.dprime))
+    };
+  }).filter(r => r.sessions || r.tests);
+
+  $('bySound').innerHTML = `
+    <thead><tr><th>Sound</th><th class="n">People</th><th class="n">Sessions</th>
+    <th class="n">Minutes</th><th class="n">Avg rating</th><th class="n">Gave up</th>
+    <th class="n">Tests</th><th class="n">Avg d′</th></tr></thead>
+    <tbody>${rows.map(r => `<tr>
+      <td>${r.name}</td><td class="n">${r.people}</td><td class="n">${r.sessions}</td>
+      <td class="n">${r.minutes}</td><td class="n">${r1(r.rating)}</td>
+      <td class="n">${r.abandoned}</td><td class="n">${r.tests}</td>
+      <td class="n">${r.dprime === null ? '—' : r.dprime.toFixed(2)}</td></tr>`).join('')}
+    </tbody>`;
+}
+
+function byUser() {
+  const rows = data.users.filter(Boolean).map(u => {
+    const ss = data.sessions.filter(s => s.userId === u.id && s.outcome !== 'abandoned');
+    const ts = data.tests.filter(t => t.userId === u.id);
+    const rated = ss.filter(s => s.rating).map(s => s.rating);
+
+    const byS = {};
+    ts.forEach(t => (byS[t.soundId] = byS[t.soundId] || []).push(t.dprime));
+    const ranked = Object.entries(byS).map(([id, ds]) => [id, mean(ds)]).sort((a, b) => b[1] - a[1]);
+
+    const mins = {};
+    ss.forEach(s => mins[s.soundId] = (mins[s.soundId] || 0) + (s.actualMinutes || 0));
+    const most = Object.entries(mins).sort((a, b) => b[1] - a[1])[0];
+
+    return {
+      nickname: u.nickname || u.id,
+      joined: u.joined ? new Date(u.joined).toLocaleDateString() : '—',
+      sessions: ss.length,
+      minutes: Math.round(ss.reduce((a, s) => a + (s.actualMinutes || 0), 0)),
+      rating: mean(rated),
+      tested: ranked.length,
+      best: ranked.length >= 2 ? nm(ranked[0][0]) : '—',
+      most: most ? nm(most[0]) : '—'
+    };
+  }).sort((a, b) => b.sessions - a.sessions);
+
+  $('byUser').innerHTML = `
+    <thead><tr><th>Nickname</th><th>Joined</th><th class="n">Sessions</th><th class="n">Minutes</th>
+    <th class="n">Avg rating</th><th class="n">Sounds tested</th><th>Tested best</th><th>Most used</th></tr></thead>
+    <tbody>${rows.map(r => `<tr>
+      <td>${r.nickname}</td><td>${r.joined}</td><td class="n">${r.sessions}</td>
+      <td class="n">${r.minutes}</td><td class="n">${r1(r.rating)}</td>
+      <td class="n">${r.tested}</td>
+      <td${r.best !== '—' && r.best === r.most ? ' style="color:var(--good)"' : ''}>${r.best}</td>
+      <td>${r.most}</td></tr>`).join('')}
+    </tbody>`;
+}
+
+document.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => {
+  const which = b.dataset.dl;
+  const csv = store.toCSV(data[which] || []);
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sound-advice-${which}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}));
+</script>
+</body>
+</html>
