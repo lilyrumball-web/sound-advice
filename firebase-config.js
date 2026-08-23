@@ -13,12 +13,12 @@
    --------------------------------------------------------------- */
 
 window.SA_FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  storageBucket: "PASTE.appspot.com",
-  messagingSenderId: "PASTE",
-  appId: "PASTE"
+  apiKey: "AIzaSyDd6J5oKs4F0sMqMU2qPlpmfJcU-jhkzM8",
+  authDomain: "sound-advice-44613.firebaseapp.com",
+  projectId: "sound-advice-44613",
+  storageBucket: "sound-advice-44613.firebasestorage.app",
+  messagingSenderId: "385762653428",
+  appId: "1:385762653428:web:3329230fb01b1a15c25aa1"
 };
 
 /* The code you type to open the admin dashboard. Change it to
