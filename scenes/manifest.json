@@ -1,0 +1,29 @@
+{
+  "size": 600,
+  "targetMean": 128.0,
+  "targetSd": 45.0,
+  "city": [
+    "city-01.jpg",
+    "city-02.jpg",
+    "city-03.jpg",
+    "city-04.jpg",
+    "city-05.jpg",
+    "city-06.jpg",
+    "city-07.jpg",
+    "city-08.jpg",
+    "city-09.jpg",
+    "city-10.jpg"
+  ],
+  "mountain": [
+    "mountain-01.jpg",
+    "mountain-02.jpg",
+    "mountain-03.jpg",
+    "mountain-04.jpg",
+    "mountain-05.jpg",
+    "mountain-06.jpg",
+    "mountain-07.jpg",
+    "mountain-08.jpg",
+    "mountain-09.jpg",
+    "mountain-10.jpg"
+  ]
+}

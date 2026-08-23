@@ -1,0 +1,57 @@
+Sound Advice — concentration test image credits
+===============================================
+
+The 20 photographs in this folder are the scenes used by the go/no-go
+concentration test: 10 cities (go trials) and 10 mountains (no-go).
+
+They are not shipped as downloaded. tools/prepare-scenes.py square-crops
+each one, converts it to grayscale, and rescales it so every image has
+the same mean brightness and the same contrast as every other. See
+SOURCES.txt for which original became which scene file.
+
+Licence check before adding any photo
+-------------------------------------
+Only free-licence photos. Unsplash, Pexels and Wikimedia Commons are all
+fine. Watch out for "Unsplash+" — that is Unsplash's PAID tier, and those
+images carry faint tiled watermark text that is nearly invisible on
+screen but shows up clearly once contrast is matched. On Unsplash, a
+small "+" badge on the thumbnail means skip it.
+
+Neither Unsplash nor Pexels legally requires attribution, but crediting
+the photographers is the right thing to do and it is one more thing the
+judges can see you thought about.
+
+Fill this in before you launch
+------------------------------
+
+Cities
+  city-01 : photographer, source URL
+  city-02 :
+  city-03 :
+  city-04 :
+  city-05 :
+  city-06 :
+  city-07 :
+  city-08 :
+  city-09 :
+  city-10 :
+
+Mountains
+  mountain-01 :
+  mountain-02 :
+  mountain-03 :
+  mountain-04 :
+  mountain-05 :
+  mountain-06 :
+  mountain-07 :
+  mountain-08 :
+  mountain-09 :
+  mountain-10 :
+
+The paradigm itself
+-------------------
+The scene-categorisation idea comes from the GradCPT, developed by the
+Boston Attention Lab and distributed by The Many Brains Project. These
+photographs are our own — the original GradCPT image set is theirs and
+is not used here. Cite Fortenbaugh et al. (2015), Psychological Science
+26(9), 1497–1510.
