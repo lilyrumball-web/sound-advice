@@ -23,4 +23,4 @@ window.SA_FIREBASE_CONFIG = {
 
 /* The code you type to open the admin dashboard. Change it to
    something only you know. */
-window.SA_ADMIN_CODE = "lily2026";
+window.SA_ADMIN_CODE = "timber2026";
