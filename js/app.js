@@ -194,6 +194,7 @@ async function renderSounds() {
 
     const wrap = document.createElement('div');
     wrap.className = 'family';
+    wrap.style.setProperty('--fam', audio.FAMILY_COLORS[fam] || '');
     wrap.innerHTML = `<span class="label">${fam}</span>`;
 
     for (const s of inFam) {
@@ -253,6 +254,7 @@ let wakeLock = null;
 
 async function startSession() {
   const s = audio.soundById(settings.sound);
+  document.body.style.setProperty('--fam', audio.FAMILY_COLORS[s.family] || '');
   const btn = $('startBtn');
   const sub = $('startSub');
 
@@ -619,11 +621,26 @@ function renderPatterns() {
     .sort((a, b) => b.v - a.v);
 
   const nm = id => audio.soundById(id).name;
-  let html = `<div class="verdict">
-    <div class="verdict-row"><span class="k">Tested best</span><span class="v">${best ? nm(best.id) : 'Test 2 sounds'}</span></div>
-    <div class="verdict-row"><span class="k">Most used</span><span class="v">${mostUsed ? nm(mostUsed[0]) : '—'}</span></div>
-    <div class="verdict-row"><span class="k">Highest rated</span><span class="v">${avgRating.length ? nm(avgRating[0].id) : 'Rate a few more'}</span></div>
+  const famOf = id => audio.soundById(id).family;
+  const dot = id => id
+    ? `<span class="fam-dot" style="background:${audio.FAMILY_COLORS[famOf(id)] || 'var(--accent)'}"></span>`
+    : '';
+
+  const bestId = best ? best.id : null;
+  const mostUsedId = mostUsed ? mostUsed[0] : null;
+  const topRatedId = avgRating.length ? avgRating[0].id : null;
+  const allMatch = bestId && mostUsedId && topRatedId &&
+    bestId === mostUsedId && mostUsedId === topRatedId;
+
+  let html = `<div class="verdict${allMatch ? ' match' : ''}">
+    <div class="verdict-row"><span class="k">Tested best</span><span class="v">${dot(bestId)}${bestId ? nm(bestId) : 'Test 2 sounds'}</span></div>
+    <div class="verdict-row"><span class="k">Most used</span><span class="v">${dot(mostUsedId)}${mostUsedId ? nm(mostUsedId) : '—'}</span></div>
+    <div class="verdict-row"><span class="k">Highest rated</span><span class="v">${dot(topRatedId)}${topRatedId ? nm(topRatedId) : 'Rate a few more'}</span></div>
   </div>`;
+
+  if (allMatch) {
+    html += `<div class="notice notice-good">All three agree — <strong>${nm(bestId)}</strong> really is your sound.</div>`;
+  }
 
   if (best && mostUsed && best.id !== mostUsed[0]) {
     html += `<div class="notice notice-warn">Interesting &mdash; you study most with
@@ -636,7 +653,7 @@ function renderPatterns() {
       avgRating.map(r => `
         <div class="bar-row">
           <span>${nm(r.id)}</span>
-          <span class="bar-track"><span class="bar-fill" style="width:${(r.v / 5) * 100}%"></span></span>
+          <span class="bar-track"><span class="bar-fill" style="width:${(r.v / 5) * 100}%;background:${audio.FAMILY_COLORS[famOf(r.id)] || 'var(--accent)'}"></span></span>
           <span class="n">${r.v.toFixed(1)}</span>
         </div>`).join('') + `</div></div>`;
   }
@@ -646,7 +663,7 @@ function renderPatterns() {
     Object.entries(minutesBy).sort((a, b) => b[1] - a[1]).map(([id, m]) => `
       <div class="bar-row">
         <span>${nm(id)}</span>
-        <span class="bar-track"><span class="bar-fill" style="width:${(m / Math.max(1, totalMin)) * 100}%"></span></span>
+        <span class="bar-track"><span class="bar-fill" style="width:${(m / Math.max(1, totalMin)) * 100}%;background:${audio.FAMILY_COLORS[famOf(id)] || 'var(--accent)'}"></span></span>
         <span class="n">${fmtMins(m)}</span>
       </div>`).join('') + `</div></div>`;
 
@@ -658,7 +675,7 @@ function renderPatterns() {
         const v = Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
         return `<div class="bar-row">
           <span>${nm(id)}</span>
-          <span class="bar-track"><span class="bar-fill" style="width:${v}%"></span></span>
+          <span class="bar-track"><span class="bar-fill" style="width:${v}%;background:${audio.FAMILY_COLORS[famOf(id)] || 'var(--accent)'}"></span></span>
           <span class="n">${v}</span></div>`;
       }).join('') + `</div></div>`;
   }

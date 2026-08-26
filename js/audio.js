@@ -39,6 +39,16 @@ export const SOUNDS = [
 export const soundById = id => SOUNDS.find(s => s.id === id) || SOUNDS[0];
 export const FAMILIES = ['Silence', 'Noise', 'Nature', 'Music'];
 
+/* Purely cosmetic -- used to tint the picker, the session screen, and the
+   patterns charts per family. Never read by the audio engine or the
+   scoring code, so changing these can't affect anything measured. */
+export const FAMILY_COLORS = {
+  Silence: '#ABA3C4',
+  Noise:   '#8FA3B5',
+  Nature:  '#74B08A',
+  Music:   '#D8A94A'
+};
+
 /* ================================================================
    1. Base noise, generated sample by sample
    ================================================================ */
