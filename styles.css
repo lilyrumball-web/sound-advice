@@ -497,3 +497,57 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- home screen redesign (aesthetic only, added by request) ----------
+   Nothing above this line was touched -- no IDs, classes, or layout changed.
+   This block only affects colour/background on #s-home plus one button and
+   one stat. Delete the whole block to fully revert. */
+
+#s-home {
+  background:
+    radial-gradient(120% 55% at 50% -12%, rgba(255,107,74,0.32) 0%, transparent 62%),
+    radial-gradient(90% 45% at 88% 2%, rgba(124,92,191,0.26) 0%, transparent 58%),
+    radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.22) 0%, transparent 58%),
+    var(--bg);
+}
+
+/* Settings button reads as a glassy chip sitting on the colour, rather than
+   the plain grey circle it is on every other screen. */
+#s-home .back {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.18);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* The one button on the app that gets its own gradient instead of the flat
+   accent teal -- it's the single thing you press every time you open this,
+   so it's the one place worth spending extra colour on. */
+#startBtn {
+  background: linear-gradient(135deg, #FF6B4A 0%, #7C5CBF 100%);
+  color: #FFFFFF;
+  border-color: transparent;
+}
+
+/* Small warm highlight on the streak number -- the stat most worth noticing
+   at a glance if the goal is getting someone to open this again tomorrow. */
+#statStreak { color: #FF6B4A; }
+
+@media (prefers-color-scheme: light) {
+  /* Same composition, much lower opacity -- full-strength colour on a
+     near-white background reads as muddy rather than warm. */
+  #s-home {
+    background:
+      radial-gradient(120% 55% at 50% -12%, rgba(255,107,74,0.18) 0%, transparent 62%),
+      radial-gradient(90% 45% at 88% 2%, rgba(124,92,191,0.14) 0%, transparent 58%),
+      radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.14) 0%, transparent 58%),
+      var(--bg);
+  }
+  #s-home .back {
+    background: rgba(255,255,255,0.6);
+    border-color: rgba(19,26,33,0.12);
+  }
+  /* Darkened to hold contrast on a light card, same way --warn/--bad/--good
+     are already darkened for light mode above. */
+  #statStreak { color: #C24A2E; }
+}

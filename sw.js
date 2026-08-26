@@ -2,7 +2,7 @@
    Keeps the app openable with no connection. Bump CACHE when you
    change any file, or phones will keep serving the old version. */
 
-const CACHE = 'sound-advice-v4';
+const CACHE = 'sound-advice-v5';
 
 const SHELL = [
   './',
