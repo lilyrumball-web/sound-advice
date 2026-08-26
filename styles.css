@@ -551,3 +551,74 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
      are already darkened for light mode above. */
   #statStreak { color: #C24A2E; }
 }
+
+/* ---------- sound picker / session / rate / patterns redesign ----------
+   Ties visuals to whichever sound family is relevant -- Silence, Noise,
+   Nature or Music -- using a --fam custom property that app.js sets on
+   the picker's family wrapper and on <body> when a session starts.
+   Same opacity and no extra motion for every family, only the hue
+   changes, so the look itself never becomes a variable in the actual
+   comparison between sounds. Nothing here is read by scoring or sync. */
+
+:root { --fam-mix: 30%; }
+@media (prefers-color-scheme: light) { :root { --fam-mix: 16%; } }
+
+.fam-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex: none;
+}
+
+/* Sound picker */
+.family > .label { display: flex; align-items: center; gap: 6px; }
+.family > .label::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--fam, var(--accent));
+  flex: none;
+}
+.sound { transition: transform 0.08s ease; }
+.sound:active { transform: scale(0.985); }
+.sound[aria-pressed="true"] {
+  border-color: var(--fam, var(--accent));
+  background: var(--accent-soft);
+  background: color-mix(in srgb, var(--fam, var(--accent)) 14%, var(--surface));
+}
+
+/* Session -- ambient wash and ring colour follow whichever family is
+   currently playing. */
+#s-session { background: var(--bg); }
+#s-session {
+  background:
+    radial-gradient(140% 70% at 50% -12%, color-mix(in srgb, var(--fam, var(--accent)) var(--fam-mix), transparent) 0%, transparent 62%),
+    var(--bg);
+}
+.ring .prog { stroke: var(--fam, var(--accent)); }
+.timer-phase { color: var(--fam, var(--accent)); }
+
+/* Rate -- same family wash carries over from the session just finished
+   (set once on <body>, so it's already there). The 1-5 scale itself is
+   unchanged; only the selected button's colour follows the family. */
+#s-rate { background: var(--bg); }
+#s-rate {
+  background:
+    radial-gradient(140% 70% at 50% -12%, color-mix(in srgb, var(--fam, var(--accent)) var(--fam-mix), transparent) 0%, transparent 62%),
+    var(--bg);
+}
+.rate-btn[aria-pressed="true"] { background: var(--fam, var(--accent)); }
+.tag-btn[aria-pressed="true"] {
+  border-color: var(--fam, var(--accent));
+  color: var(--fam, var(--accent));
+  background: var(--accent-soft);
+  background: color-mix(in srgb, var(--fam, var(--accent)) 14%, transparent);
+}
+
+/* Patterns -- a coloured dot per sound in the three-way verdict, and a
+   quiet highlight for when tested-best, most-used and highest-rated all
+   agree. Bar colours themselves are set inline per sound in app.js. */
+.verdict-row .v { display: flex; align-items: center; justify-content: flex-end; }
+.verdict.match .verdict-row { border-color: var(--good); }
+.notice-good { background: color-mix(in srgb, var(--good) 16%, transparent); }
