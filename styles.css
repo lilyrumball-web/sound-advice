@@ -289,7 +289,7 @@ input[type="range"] {
 }
 
 .timer-num {
-  font-size: clamp(2.6rem, 23cqw, 3.8rem);
+  font-size: clamp(3rem, 32cqw, 5.2rem);
   font-weight: 250;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;
@@ -299,16 +299,23 @@ input[type="range"] {
 
 .timer-phase { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
 
-.ring { width: min(74vw, 260px); aspect-ratio: 1; display: block; }
+.ring { width: 100%; display: block; }
 .ring circle { fill: none; stroke-linecap: round; }
 .ring .track { stroke: var(--line); }
 .ring .prog { stroke: var(--accent); transition: stroke-dashoffset 0.4s linear; }
 
-/* container-type turns ring-wrap into a sizing reference: cqw above means
-   "% of the ring's own width", not "% of the screen". That's what keeps
-   the number matched to the ring at every screen size, instead of the two
-   growing at different rates and drifting apart like they were before. */
-.ring-wrap { position: relative; display: grid; place-items: center; container-type: inline-size; }
+/* Sizing lives here now, not on .ring (its child) -- a size-contained
+   element (container-type below) needs its OWN explicit size rather
+   than inheriting one from content, or the browser can't reliably place
+   it, which is what was pushing the ring off-centre. */
+.ring-wrap {
+  position: relative;
+  width: min(78vw, 300px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  container-type: inline-size;
+}
 .ring-inner { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
 
 /* ---------- rating ---------- */
