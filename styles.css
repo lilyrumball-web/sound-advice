@@ -289,7 +289,7 @@ input[type="range"] {
 }
 
 .timer-num {
-  font-size: clamp(4rem, 22vw, 6.5rem);
+  font-size: clamp(2.6rem, 23cqw, 3.8rem);
   font-weight: 250;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;
@@ -304,7 +304,11 @@ input[type="range"] {
 .ring .track { stroke: var(--line); }
 .ring .prog { stroke: var(--accent); transition: stroke-dashoffset 0.4s linear; }
 
-.ring-wrap { position: relative; display: grid; place-items: center; }
+/* container-type turns ring-wrap into a sizing reference: cqw above means
+   "% of the ring's own width", not "% of the screen". That's what keeps
+   the number matched to the ring at every screen size, instead of the two
+   growing at different rates and drifting apart like they were before. */
+.ring-wrap { position: relative; display: grid; place-items: center; container-type: inline-size; }
 .ring-inner { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
 
 /* ---------- rating ---------- */
