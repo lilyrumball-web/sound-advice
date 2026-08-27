@@ -9,9 +9,9 @@
   --ink-soft: #B9C4D0;
   --muted: #7C8896;
   --line: #232C36;
-  --accent: #3FB8A5;
-  --accent-ink: #06231F;
-  --accent-soft: #10302C;
+  --accent: #FF6B4A;
+  --accent-ink: #3A140B;
+  --accent-soft: #3A2019;
   --warn: #E4886B;
   --bad: #E0687C;
   --good: #63C08A;
@@ -35,9 +35,9 @@
     --ink-soft: #3D4954;
     --muted: #6B7783;
     --line: #DCE3E9;
-    --accent: #0E7A6C;
+    --accent: #C24A2E;
     --accent-ink: #FFFFFF;
-    --accent-soft: #DFF0ED;
+    --accent-soft: #FBE3DA;
     --warn: #B4562F;
     --bad: #B03349;
     --good: #2E7D51;
@@ -299,21 +299,19 @@ input[type="range"] {
 
 .timer-phase { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
 
-.ring { width: 100%; display: block; }
+.ring { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .ring circle { fill: none; stroke-linecap: round; }
 .ring .track { stroke: var(--line); }
 .ring .prog { stroke: var(--accent); transition: stroke-dashoffset 0.4s linear; }
 
-/* Sizing lives here now, not on .ring (its child) -- a size-contained
-   element (container-type below) needs its OWN explicit size rather
-   than inheriting one from content, or the browser can't reliably place
-   it, which is what was pushing the ring off-centre. */
+/* ring-wrap just needs to be the right shape and size -- both children
+   (the SVG and the text) are absolutely positioned to fill that exact
+   same box, so there's no layout mode mismatch between them left to
+   drift out of alignment. */
 .ring-wrap {
   position: relative;
   width: min(78vw, 300px);
   aspect-ratio: 1;
-  display: grid;
-  place-items: center;
   container-type: inline-size;
 }
 .ring-inner { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
