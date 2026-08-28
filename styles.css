@@ -513,11 +513,47 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
    one stat. Delete the whole block to fully revert. */
 
 #s-home {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(120% 55% at 50% -12%, rgba(255,107,74,0.32) 0%, transparent 62%),
-    radial-gradient(90% 45% at 88% 2%, rgba(124,92,191,0.26) 0%, transparent 58%),
     radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.22) 0%, transparent 58%),
     var(--bg);
+}
+#s-home::before, #s-home::after {
+  content: '';
+  position: absolute;
+  width: 65vw;
+  height: 65vw;
+  max-width: 340px;
+  max-height: 340px;
+  border-radius: 50%;
+  filter: blur(50px);
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+}
+#s-home::before {
+  background: #FF6B4A;
+  opacity: 0.35;
+  top: -18%;
+  left: -14%;
+  animation: home-blob-a 20s ease-in-out infinite;
+}
+#s-home::after {
+  background: #7C5CBF;
+  opacity: 0.30;
+  top: -8%;
+  right: -18%;
+  animation: home-blob-b 26s ease-in-out infinite;
+  animation-delay: -8s; /* starts partway through so the two never sync up */
+}
+@keyframes home-blob-a {
+  0%, 100% { transform: translate(0%, 0%) scale(1); }
+  50%      { transform: translate(12%, 16%) scale(1.15); }
+}
+@keyframes home-blob-b {
+  0%, 100% { transform: translate(0%, 0%) scale(1); }
+  50%      { transform: translate(-14%, 12%) scale(0.9); }
 }
 
 /* Settings button reads as a glassy chip sitting on the colour, rather than
@@ -543,15 +579,15 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 #statStreak { color: #FF6B4A; }
 
 @media (prefers-color-scheme: light) {
-  /* Same composition, much lower opacity -- full-strength colour on a
+  /* Same moving blobs, much lower opacity -- full-strength colour on a
      near-white background reads as muddy rather than warm. */
   #s-home {
     background:
-      radial-gradient(120% 55% at 50% -12%, rgba(255,107,74,0.18) 0%, transparent 62%),
-      radial-gradient(90% 45% at 88% 2%, rgba(124,92,191,0.14) 0%, transparent 58%),
       radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.14) 0%, transparent 58%),
       var(--bg);
   }
+  #s-home::before { opacity: 0.18; }
+  #s-home::after  { opacity: 0.16; }
   #s-home .back {
     background: rgba(255,255,255,0.6);
     border-color: rgba(19,26,33,0.12);
