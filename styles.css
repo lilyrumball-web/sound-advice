@@ -518,19 +518,19 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
   background-color: var(--bg);
   background-repeat: no-repeat, no-repeat, no-repeat;
   background-size:
-    min(75vw, 360px) min(75vw, 360px),
-    min(75vw, 360px) min(75vw, 360px),
+    min(95vw, 480px) min(95vw, 480px),
+    min(95vw, 480px) min(95vw, 480px),
     100% 100%;
   background-image:
     radial-gradient(circle, #FF6B4A 0%, rgba(255,107,74,0.55) 35%, transparent 70%),
     radial-gradient(circle, #7C5CBF 0%, rgba(124,92,191,0.5) 35%, transparent 70%),
-    radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.22) 0%, transparent 58%);
-  background-position: -20% -30%, 120% -20%, 0 0;
-  animation: home-bg-drift 22s ease-in-out infinite;
+    radial-gradient(110% 85% at 15% 0%, rgba(63,184,165,0.16) 0%, transparent 68%);
+  background-position: -20% -20%, 120% -10%, 0 0;
+  animation: home-bg-drift 26s ease-in-out infinite;
 }
 @keyframes home-bg-drift {
-  0%, 100% { background-position: -20% -30%, 120% -20%, 0 0; }
-  50%      { background-position: 0% 10%,   85% 15%,  0 0; }
+  0%, 100% { background-position: -20% -20%, 120% -10%, 0 0; }
+  50%      { background-position: 10%  60%,  80%   65%, 0 0; }
 }
 
 /* Settings button reads as a glassy chip sitting on the colour, rather than
@@ -562,7 +562,7 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
     background-image:
       radial-gradient(circle, rgba(255,107,74,0.55) 0%, rgba(255,107,74,0.3) 35%, transparent 70%),
       radial-gradient(circle, rgba(124,92,191,0.5) 0%, rgba(124,92,191,0.26) 35%, transparent 70%),
-      radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.14) 0%, transparent 58%);
+      radial-gradient(110% 85% at 15% 0%, rgba(63,184,165,0.1) 0%, transparent 68%);
   }
   #s-home .back {
     background: rgba(255,255,255,0.6);
