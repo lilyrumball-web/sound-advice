@@ -514,48 +514,23 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 
 #s-home {
   position: relative;
-  isolation: isolate;
-  z-index: 0;
   overflow: hidden;
-  background:
-    radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.22) 0%, transparent 58%),
-    var(--bg);
+  background-color: var(--bg);
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size:
+    min(75vw, 360px) min(75vw, 360px),
+    min(75vw, 360px) min(75vw, 360px),
+    100% 100%;
+  background-image:
+    radial-gradient(circle, #FF6B4A 0%, rgba(255,107,74,0.55) 35%, transparent 70%),
+    radial-gradient(circle, #7C5CBF 0%, rgba(124,92,191,0.5) 35%, transparent 70%),
+    radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.22) 0%, transparent 58%);
+  background-position: -20% -30%, 120% -20%, 0 0;
+  animation: home-bg-drift 22s ease-in-out infinite;
 }
-#s-home::before, #s-home::after {
-  content: '';
-  position: absolute;
-  width: 65vw;
-  height: 65vw;
-  max-width: 340px;
-  max-height: 340px;
-  border-radius: 50%;
-  filter: blur(50px);
-  z-index: -1;
-  pointer-events: none;
-  will-change: transform;
-}
-#s-home::before {
-  background: #FF6B4A;
-  opacity: 0.9; /* TEMP: turned way up to confirm these are rendering at all */
-  top: -18%;
-  left: -14%;
-  animation: home-blob-a 20s ease-in-out infinite;
-}
-#s-home::after {
-  background: #7C5CBF;
-  opacity: 0.9; /* TEMP: same, temporary */
-  top: -8%;
-  right: -18%;
-  animation: home-blob-b 26s ease-in-out infinite;
-  animation-delay: -8s; /* starts partway through so the two never sync up */
-}
-@keyframes home-blob-a {
-  0%, 100% { transform: translate(0%, 0%) scale(1); }
-  50%      { transform: translate(12%, 16%) scale(1.15); }
-}
-@keyframes home-blob-b {
-  0%, 100% { transform: translate(0%, 0%) scale(1); }
-  50%      { transform: translate(-14%, 12%) scale(0.9); }
+@keyframes home-bg-drift {
+  0%, 100% { background-position: -20% -30%, 120% -20%, 0 0; }
+  50%      { background-position: 0% 10%,   85% 15%,  0 0; }
 }
 
 /* Settings button reads as a glassy chip sitting on the colour, rather than
@@ -581,15 +556,14 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 #statStreak { color: #FF6B4A; }
 
 @media (prefers-color-scheme: light) {
-  /* Same moving blobs, much lower opacity -- full-strength colour on a
+  /* Same drifting gradients, much lower alpha -- full-strength colour on a
      near-white background reads as muddy rather than warm. */
   #s-home {
-    background:
-      radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.14) 0%, transparent 58%),
-      var(--bg);
+    background-image:
+      radial-gradient(circle, rgba(255,107,74,0.55) 0%, rgba(255,107,74,0.3) 35%, transparent 70%),
+      radial-gradient(circle, rgba(124,92,191,0.5) 0%, rgba(124,92,191,0.26) 35%, transparent 70%),
+      radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.14) 0%, transparent 58%);
   }
-  #s-home::before { opacity: 0.9; } /* TEMP: matches diagnostic above for now */
-  #s-home::after  { opacity: 0.9; } /* TEMP: matches diagnostic above for now */
   #s-home .back {
     background: rgba(255,255,255,0.6);
     border-color: rgba(19,26,33,0.12);
