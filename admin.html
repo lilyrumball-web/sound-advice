@@ -55,7 +55,11 @@
       <button class="btn btn-ghost btn-sm" data-dl="users">Users CSV</button>
       <button class="btn btn-ghost btn-sm" data-dl="sessions">Sessions CSV</button>
       <button class="btn btn-ghost btn-sm" data-dl="tests">Tests CSV</button>
+      <button class="btn btn-ghost btn-sm" data-dl="testsWithTipi">Tests + personality CSV</button>
     </div>
+    <p class="tiny">The last one is the file for the extraversion analysis &mdash; one row per
+      test, with that person&rsquo;s five personality scores already attached, so there&rsquo;s
+      no manual matching needed in Excel or Sheets.</p>
     <p class="tiny">Download a copy every few days during the trial. A spreadsheet on your
       laptop is what saves you if anything goes wrong with the hosting.</p>
   </section>
@@ -63,8 +67,8 @@
 </div>
 
 <script type="module">
-import * as store from './js/store.js';
-import { SOUNDS, soundById } from './js/audio.js';
+import * as store from './js/store.js?v=24';
+import { SOUNDS, soundById } from './js/audio.js?v=24';
 
 const $ = id => document.getElementById(id);
 let data = null;
@@ -245,6 +249,8 @@ function byUser() {
     ss.forEach(s => mins[s.soundId] = (mins[s.soundId] || 0) + (s.actualMinutes || 0));
     const most = Object.entries(mins).sort((a, b) => b[1] - a[1])[0];
 
+    const extraversion = u.tipi && u.tipi.scores ? u.tipi.scores.Extraversion : null;
+
     return {
       nickname: u.nickname || u.id,
       joined: u.joined ? new Date(u.joined).toLocaleDateString() : '—',
@@ -253,25 +259,90 @@ function byUser() {
       rating: mean(rated),
       tested: ranked.length,
       best: ranked.length >= 2 ? nm(ranked[0][0]) : '—',
-      most: most ? nm(most[0]) : '—'
+      most: most ? nm(most[0]) : '—',
+      extraversion
     };
   }).sort((a, b) => b.sessions - a.sessions);
 
   $('byUser').innerHTML = `
     <thead><tr><th>Nickname</th><th>Joined</th><th class="n">Sessions</th><th class="n">Minutes</th>
-    <th class="n">Avg rating</th><th class="n">Sounds tested</th><th>Tested best</th><th>Most used</th></tr></thead>
+    <th class="n">Avg rating</th><th class="n">Sounds tested</th><th>Tested best</th><th>Most used</th>
+    <th class="n">Extraversion</th></tr></thead>
     <tbody>${rows.map(r => `<tr>
       <td>${r.nickname}</td><td>${r.joined}</td><td class="n">${r.sessions}</td>
       <td class="n">${r.minutes}</td><td class="n">${r1(r.rating)}</td>
       <td class="n">${r.tested}</td>
       <td${r.best !== '—' && r.best === r.most ? ' style="color:var(--good)"' : ''}>${r.best}</td>
-      <td>${r.most}</td></tr>`).join('')}
+      <td>${r.most}</td>
+      <td class="n">${r.extraversion === null ? '—' : r.extraversion}</td></tr>`).join('')}
     </tbody>`;
+}
+
+/* ---------- clean exports ----------
+   Raw Firestore user docs carry a pinHash and a nested device object that
+   have no place in a shared spreadsheet, and a nested tipi object that
+   most spreadsheet tools won't unpack on their own. Flatten both into
+   plain columns before they ever reach toCSV(). */
+function flattenUser(u) {
+  const t = u.tipi || {};
+  const s = t.scores || {};
+  return {
+    id: u.id,
+    nickname: u.nickname || u.id,
+    joined: u.joined ? new Date(u.joined).toISOString() : '',
+    lastActive: u.lastActive ? new Date(u.lastActive).toISOString() : '',
+    recommendedSound: u.recommended ? nm(u.recommended) : '',
+    extraversion: s.Extraversion ?? '',
+    agreeableness: s.Agreeableness ?? '',
+    conscientiousness: s.Conscientiousness ?? '',
+    emotionalStability: s['Emotional stability'] ?? '',
+    openness: s.Openness ?? '',
+    tipiTakenAt: t.takenAt ? new Date(t.takenAt).toISOString() : ''
+  };
+}
+
+/* One row per test, with that person's five personality scores attached --
+   this is the file that actually supports the extraversion x sound-condition
+   analysis, since it needs both on the same row without a manual VLOOKUP. */
+function testsWithPersonality() {
+  const byId = {};
+  data.users.filter(Boolean).forEach(u => byId[u.id] = u);
+
+  return data.tests.map(t => {
+    const u = byId[t.userId] || {};
+    const s = (u.tipi && u.tipi.scores) || {};
+    return {
+      userId: t.userId,
+      nickname: u.nickname || t.nickname || t.userId,
+      soundId: t.soundId,
+      soundName: nm(t.soundId),
+      kind: t.kind,
+      takenAt: t.takenAt ? new Date(t.takenAt).toISOString() : '',
+      accuracy: t.accuracy,
+      goAccuracy: t.goAccuracy,
+      nogoAccuracy: t.nogoAccuracy,
+      meanRT: t.meanRT,
+      medianRT: t.medianRT,
+      sdRT: t.sdRT,
+      cvRT: t.cvRT,
+      dprime: t.dprime,
+      criterion: t.criterion,
+      focusScore: t.focusScore,
+      extraversion: s.Extraversion ?? '',
+      agreeableness: s.Agreeableness ?? '',
+      conscientiousness: s.Conscientiousness ?? '',
+      emotionalStability: s['Emotional stability'] ?? '',
+      openness: s.Openness ?? ''
+    };
+  });
 }
 
 document.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => {
   const which = b.dataset.dl;
-  const csv = store.toCSV(data[which] || []);
+  const rows = which === 'users' ? data.users.filter(Boolean).map(flattenUser)
+    : which === 'testsWithTipi' ? testsWithPersonality()
+    : (data[which] || []);
+  const csv = store.toCSV(rows);
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   const a = document.createElement('a');
   a.href = url;

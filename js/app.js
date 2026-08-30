@@ -1,9 +1,9 @@
 /* Sound Advice — application
    Screens, timer, test flow, patterns. */
 
-import * as audio from './audio.js?v=23';
-import * as store from './store.js?v=23';
-import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=23';
+import * as audio from './audio.js?v=24';
+import * as store from './store.js?v=24';
+import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=24';
 
 const $  = id => document.getElementById(id);
 const $$ = sel => [...document.querySelectorAll(sel)];
@@ -72,6 +72,7 @@ function go(name) {
   if (name === 'patterns') renderPatterns();
   if (name === 'settings') renderSettings();
   if (name === 'tipi') renderTipi();
+  if (name === 'onboard') renderOnboard();
 }
 
 let toastTimer;
@@ -206,9 +207,7 @@ function renderHome() {
       ? `You focus best with ${audio.soundById(best.id).name}, based on your tests.`
       : '';
 
-  $('toTipiHome').textContent = (user && user.tipi)
-    ? 'Retake the personality check'
-    : 'Personality check (1 min, optional)';
+  $('toTipiHome').textContent = tipiButtonLabel('Personality check (1 min, optional)');
 }
 
 /* ================================================================
@@ -817,9 +816,7 @@ function renderSettings() {
     ? (pending ? `${pending} record${pending === 1 ? '' : 's'} waiting to sync` : 'Everything is synced')
     : 'Saved on this device only';
 
-  $('setTipi').textContent = (user && user.tipi)
-    ? 'Retake the personality check'
-    : 'Take the personality check (optional)';
+  $('setTipi').textContent = tipiButtonLabel('Take the personality check (optional)');
 
   const music = audio.SOUNDS.filter(s => s.file);
   Promise.all(music.map(audio.fileAvailable)).then(av => {
@@ -835,6 +832,16 @@ function renderSettings() {
         }).join('<br><br>')
       : 'No music tracks have been added yet.';
   });
+}
+
+// Shared so the onboarding screen, home screen, and settings screen never
+// disagree about whether someone has already done this.
+function tipiButtonLabel(todoText) {
+  return (user && user.tipi) ? 'Retake the personality check ✓' : todoText;
+}
+
+function renderOnboard() {
+  $('onboardTipi').textContent = tipiButtonLabel('Quick personality check (1 min, optional)');
 }
 
 function renderTipi() {
