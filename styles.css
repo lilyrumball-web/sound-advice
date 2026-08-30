@@ -507,12 +507,18 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
-/* ---------- home screen redesign (aesthetic only, added by request) ----------
+/* ---------- app-wide drifting background (aesthetic only, added by request) ----------
    Nothing above this line was touched -- no IDs, classes, or layout changed.
-   This block only affects colour/background on #s-home plus one button and
-   one stat. Delete the whole block to fully revert. */
+   One shared "engine" rule (position/size/animation) is applied to every
+   screen except the concentration test itself (#testStage isn't a .screen,
+   so it was never touched and never will be -- the go/no-go stimulus has
+   to stay exactly as plain as the GradCPT paradigm requires). Each screen
+   just sets its own --wash-1/2/3 colours; the engine does the rest.
+   Delete this whole block to fully revert to flat colour everywhere. */
 
-#s-home {
+#s-signin, #s-privacy, #s-onboard, #s-check, #s-testintro, #s-between,
+#s-testresult, #s-home, #s-sounds, #s-session, #s-rate, #s-patterns,
+#s-settings, #s-credits {
   position: relative;
   overflow: hidden;
   background-color: var(--bg);
@@ -522,9 +528,9 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
     min(95vw, 480px) min(95vw, 480px),
     100% 100%;
   background-image:
-    radial-gradient(circle, #FF6B4A 0%, rgba(255,107,74,0.55) 35%, transparent 70%),
-    radial-gradient(circle, #7C5CBF 0%, rgba(124,92,191,0.5) 35%, transparent 70%),
-    radial-gradient(110% 85% at 15% 0%, rgba(63,184,165,0.16) 0%, transparent 68%);
+    radial-gradient(circle, var(--wash-1) 0%, transparent 70%),
+    radial-gradient(circle, var(--wash-2) 0%, transparent 70%),
+    radial-gradient(110% 85% at 15% 0%, var(--wash-3) 0%, transparent 68%);
   background-position: -20% -20%, 120% -10%, 0 0;
   animation: home-bg-drift 26s ease-in-out infinite;
 }
@@ -533,9 +539,9 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
   50%      { background-position: 10%  60%,  80%   65%, 0 0; }
 }
 
-/* Settings button reads as a glassy chip sitting on the colour, rather than
-   the plain grey circle it is on every other screen. */
-#s-home .back {
+/* Back button reads as a glassy chip on the colour instead of a plain grey
+   circle, now that every screen behind it has one. */
+.back {
   background: rgba(255,255,255,0.12);
   border-color: rgba(255,255,255,0.18);
   -webkit-backdrop-filter: blur(6px);
@@ -555,16 +561,41 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
    at a glance if the goal is getting someone to open this again tomorrow. */
 #statStreak { color: #FF6B4A; }
 
+/* Per-screen palettes, dark mode. Signin and Patterns get the full
+   coral/violet/teal brand blend (first and last impression, and the
+   "whole project in one screen" reveal). The pre/post-test screens use
+   cooler, calmer pairings on purpose -- they sit right next to actual
+   concentration testing, so it felt wrong to make them as lively as Home. */
+#s-signin  { --wash-1: rgba(255,107,74,0.55); --wash-2: rgba(124,92,191,0.5);  --wash-3: rgba(63,184,165,0.16); }
+#s-privacy { --wash-1: rgba(63,184,165,0.4);  --wash-2: rgba(171,163,196,0.32); --wash-3: rgba(63,184,165,0.14); }
+#s-onboard { --wash-1: rgba(116,176,138,0.45); --wash-2: rgba(216,169,74,0.4);  --wash-3: rgba(143,163,181,0.16); }
+#s-check   { --wash-1: rgba(143,163,181,0.4); --wash-2: rgba(63,184,165,0.32); --wash-3: rgba(143,163,181,0.14); }
+#s-testintro { --wash-1: rgba(63,184,165,0.4); --wash-2: rgba(143,163,181,0.32); --wash-3: rgba(63,184,165,0.14); }
+#s-between { --wash-1: rgba(116,176,138,0.42); --wash-2: rgba(63,184,165,0.34); --wash-3: rgba(116,176,138,0.14); }
+#s-testresult { --wash-1: rgba(255,107,74,0.42); --wash-2: rgba(216,169,74,0.36); --wash-3: rgba(255,107,74,0.14); }
+#s-home    { --wash-1: rgba(255,107,74,0.55); --wash-2: rgba(124,92,191,0.5);  --wash-3: rgba(63,184,165,0.16); }
+#s-sounds  { --wash-1: rgba(216,169,74,0.4);  --wash-2: rgba(171,163,196,0.34); --wash-3: rgba(116,176,138,0.14); }
+#s-patterns { --wash-1: rgba(124,92,191,0.5); --wash-2: rgba(216,169,74,0.45); --wash-3: rgba(63,184,165,0.16); }
+#s-settings { --wash-1: rgba(143,163,181,0.22); --wash-2: rgba(171,163,196,0.18); --wash-3: rgba(63,184,165,0.08); }
+#s-credits  { --wash-1: rgba(216,169,74,0.32); --wash-2: rgba(63,184,165,0.24); --wash-3: rgba(216,169,74,0.1); }
+
 @media (prefers-color-scheme: light) {
-  /* Same drifting gradients, much lower alpha -- full-strength colour on a
-     near-white background reads as muddy rather than warm. */
-  #s-home {
-    background-image:
-      radial-gradient(circle, rgba(255,107,74,0.55) 0%, rgba(255,107,74,0.3) 35%, transparent 70%),
-      radial-gradient(circle, rgba(124,92,191,0.5) 0%, rgba(124,92,191,0.26) 35%, transparent 70%),
-      radial-gradient(110% 85% at 15% 0%, rgba(63,184,165,0.1) 0%, transparent 68%);
-  }
-  #s-home .back {
+  /* Same drifting wash everywhere, much lower alpha -- full-strength
+     colour on a near-white background reads as muddy rather than warm. */
+  #s-signin  { --wash-1: rgba(255,107,74,0.3);  --wash-2: rgba(124,92,191,0.26); --wash-3: rgba(63,184,165,0.1); }
+  #s-privacy { --wash-1: rgba(63,184,165,0.22); --wash-2: rgba(171,163,196,0.18); --wash-3: rgba(63,184,165,0.08); }
+  #s-onboard { --wash-1: rgba(116,176,138,0.25); --wash-2: rgba(216,169,74,0.22); --wash-3: rgba(143,163,181,0.09); }
+  #s-check   { --wash-1: rgba(143,163,181,0.22); --wash-2: rgba(63,184,165,0.18); --wash-3: rgba(143,163,181,0.08); }
+  #s-testintro { --wash-1: rgba(63,184,165,0.22); --wash-2: rgba(143,163,181,0.18); --wash-3: rgba(63,184,165,0.08); }
+  #s-between { --wash-1: rgba(116,176,138,0.23); --wash-2: rgba(63,184,165,0.19); --wash-3: rgba(116,176,138,0.08); }
+  #s-testresult { --wash-1: rgba(255,107,74,0.23); --wash-2: rgba(216,169,74,0.2); --wash-3: rgba(255,107,74,0.08); }
+  #s-home    { --wash-1: rgba(255,107,74,0.3);  --wash-2: rgba(124,92,191,0.26); --wash-3: rgba(63,184,165,0.1); }
+  #s-sounds  { --wash-1: rgba(216,169,74,0.22); --wash-2: rgba(171,163,196,0.19); --wash-3: rgba(116,176,138,0.08); }
+  #s-patterns { --wash-1: rgba(124,92,191,0.28); --wash-2: rgba(216,169,74,0.25); --wash-3: rgba(63,184,165,0.1); }
+  #s-settings { --wash-1: rgba(143,163,181,0.12); --wash-2: rgba(171,163,196,0.1); --wash-3: rgba(63,184,165,0.05); }
+  #s-credits  { --wash-1: rgba(216,169,74,0.18); --wash-2: rgba(63,184,165,0.14); --wash-3: rgba(216,169,74,0.06); }
+
+  .back {
     background: rgba(255,255,255,0.6);
     border-color: rgba(19,26,33,0.12);
   }
@@ -581,8 +612,6 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
    changes, so the look itself never becomes a variable in the actual
    comparison between sounds. Nothing here is read by scoring or sync. */
 
-:root { --fam-mix: 30%; }
-@media (prefers-color-scheme: light) { :root { --fam-mix: 16%; } }
 
 .fam-dot {
   display: inline-block;
@@ -609,26 +638,29 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
   background: color-mix(in srgb, var(--fam, var(--accent)) 14%, var(--surface));
 }
 
-/* Session -- ambient wash and ring colour follow whichever family is
-   currently playing. */
-#s-session { background: var(--bg); }
-#s-session {
-  background:
-    radial-gradient(140% 70% at 50% -12%, color-mix(in srgb, var(--fam, var(--accent)) var(--fam-mix), transparent) 0%, transparent 62%),
-    var(--bg);
+/* Session and Rate use the same drifting engine as every other screen,
+   but their wash colours come from --fam (set by app.js per sound family)
+   instead of a fixed palette -- same alpha for every family, only the hue
+   changes, so the motion/intensity itself never becomes a variable in the
+   comparison between sounds. */
+#s-session, #s-rate {
+  --wash-1: color-mix(in srgb, var(--fam, var(--accent)) 45%, transparent);
+  --wash-2: color-mix(in srgb, var(--fam, var(--accent)) 30%, transparent);
+  --wash-3: color-mix(in srgb, var(--fam, var(--accent)) 22%, transparent);
+}
+@media (prefers-color-scheme: light) {
+  #s-session, #s-rate {
+    --wash-1: color-mix(in srgb, var(--fam, var(--accent)) 22%, transparent);
+    --wash-2: color-mix(in srgb, var(--fam, var(--accent)) 16%, transparent);
+    --wash-3: color-mix(in srgb, var(--fam, var(--accent)) 10%, transparent);
+  }
 }
 .ring .prog { stroke: var(--fam, var(--accent)); }
 .timer-phase { color: var(--fam, var(--accent)); }
 
-/* Rate -- same family wash carries over from the session just finished
+/* Rate -- the family wash carries over from the session just finished
    (set once on <body>, so it's already there). The 1-5 scale itself is
    unchanged; only the selected button's colour follows the family. */
-#s-rate { background: var(--bg); }
-#s-rate {
-  background:
-    radial-gradient(140% 70% at 50% -12%, color-mix(in srgb, var(--fam, var(--accent)) var(--fam-mix), transparent) 0%, transparent 62%),
-    var(--bg);
-}
 .rate-btn[aria-pressed="true"] { background: var(--fam, var(--accent)); }
 .tag-btn[aria-pressed="true"] {
   border-color: var(--fam, var(--accent));
