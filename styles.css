@@ -522,21 +522,23 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
   position: relative;
   overflow: hidden;
   background-color: var(--bg);
-  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
   background-size:
-    min(170vw, 820px) min(170vw, 820px),
-    min(170vw, 820px) min(170vw, 820px),
-    min(190vw, 920px) min(190vw, 920px);
+    min(190vw, 900px) min(190vw, 900px),
+    min(190vw, 900px) min(190vw, 900px),
+    min(230vw, 1080px) min(230vw, 1080px),
+    min(150vw, 680px) min(150vw, 680px);
   background-image:
     radial-gradient(circle, var(--wash-1) 0%, transparent 72%),
     radial-gradient(circle, var(--wash-2) 0%, transparent 72%),
-    radial-gradient(circle, var(--wash-3) 0%, transparent 75%);
-  background-position: -15% -15%, 115% 0%, 45% 55%;
-  animation: home-bg-drift 22s ease-in-out infinite;
+    radial-gradient(circle, var(--wash-3) 0%, transparent 75%),
+    radial-gradient(circle, var(--wash-1) 0%, transparent 72%);
+  background-position: 70% -10%, 100% 40%, 15% 80%, 90% 90%;
+  animation: home-bg-drift 34s ease-in-out infinite;
 }
 @keyframes home-bg-drift {
-  0%, 100% { background-position: -15% -15%, 115%  0%, 45% 55%; }
-  50%      { background-position: 20%   90%,  75% 90%, 55% 45%; }
+  0%, 100% { background-position: 70% -10%, 100% 40%, 15% 80%, 90% 90%; }
+  50%      { background-position: 40%  70%,  60% 100%, -10% 20%, 60% 20%; }
 }
 
 /* Back button reads as a glassy chip on the colour instead of a plain grey
@@ -566,34 +568,34 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
    "whole project in one screen" reveal). The pre/post-test screens use
    cooler, calmer pairings on purpose -- they sit right next to actual
    concentration testing, so it felt wrong to make them as lively as Home. */
-#s-signin  { --wash-1: rgba(255,107,74,0.62); --wash-2: rgba(124,92,191,0.62);  --wash-3: rgba(63,184,165,0.48); }
-#s-privacy { --wash-1: rgba(171,163,196,0.52); --wash-2: rgba(143,163,181,0.416); --wash-3: rgba(63,184,165,0.3); }
-#s-onboard { --wash-1: rgba(216,169,74,0.585); --wash-2: rgba(171,163,196,0.52); --wash-3: rgba(143,163,181,0.48); }
-#s-check   { --wash-1: rgba(143,163,181,0.52); --wash-2: rgba(171,163,196,0.416); --wash-3: rgba(143,163,181,0.42); }
-#s-testintro { --wash-1: rgba(143,163,181,0.52); --wash-2: rgba(124,92,191,0.39); --wash-3: rgba(143,163,181,0.42); }
-#s-between { --wash-1: rgba(143,163,181,0.546); --wash-2: rgba(171,163,196,0.442); --wash-3: rgba(143,163,181,0.42); }
-#s-testresult { --wash-1: rgba(255,107,74,0.546); --wash-2: rgba(216,169,74,0.468); --wash-3: rgba(255,107,74,0.42); }
-#s-home    { --wash-1: rgba(255,107,74,0.62); --wash-2: rgba(124,92,191,0.62);  --wash-3: rgba(63,184,165,0.48); }
-#s-sounds  { --wash-1: rgba(216,169,74,0.52);  --wash-2: rgba(171,163,196,0.442); --wash-3: rgba(124,92,191,0.42); }
-#s-patterns { --wash-1: rgba(124,92,191,0.62); --wash-2: rgba(216,169,74,0.585); --wash-3: rgba(63,184,165,0.48); }
-#s-settings { --wash-1: rgba(143,163,181,0.286); --wash-2: rgba(171,163,196,0.234); --wash-3: rgba(124,92,191,0.18); }
-#s-credits  { --wash-1: rgba(216,169,74,0.416); --wash-2: rgba(171,163,196,0.312); --wash-3: rgba(216,169,74,0.3); }
+#s-signin  { --wash-1: rgba(255,107,74,0.72); --wash-2: rgba(124,92,191,0.72);  --wash-3: rgba(63,184,165,0.566); }
+#s-privacy { --wash-1: rgba(171,163,196,0.614); --wash-2: rgba(143,163,181,0.491); --wash-3: rgba(63,184,165,0.354); }
+#s-onboard { --wash-1: rgba(216,169,74,0.69); --wash-2: rgba(171,163,196,0.614); --wash-3: rgba(143,163,181,0.566); }
+#s-check   { --wash-1: rgba(143,163,181,0.614); --wash-2: rgba(171,163,196,0.491); --wash-3: rgba(143,163,181,0.496); }
+#s-testintro { --wash-1: rgba(143,163,181,0.614); --wash-2: rgba(124,92,191,0.46); --wash-3: rgba(143,163,181,0.496); }
+#s-between { --wash-1: rgba(143,163,181,0.644); --wash-2: rgba(171,163,196,0.522); --wash-3: rgba(143,163,181,0.496); }
+#s-testresult { --wash-1: rgba(255,107,74,0.644); --wash-2: rgba(216,169,74,0.552); --wash-3: rgba(255,107,74,0.496); }
+#s-home    { --wash-1: rgba(255,107,74,0.72); --wash-2: rgba(124,92,191,0.72);  --wash-3: rgba(63,184,165,0.566); }
+#s-sounds  { --wash-1: rgba(216,169,74,0.614);  --wash-2: rgba(171,163,196,0.522); --wash-3: rgba(124,92,191,0.496); }
+#s-patterns { --wash-1: rgba(124,92,191,0.72); --wash-2: rgba(216,169,74,0.69); --wash-3: rgba(63,184,165,0.566); }
+#s-settings { --wash-1: rgba(143,163,181,0.337); --wash-2: rgba(171,163,196,0.276); --wash-3: rgba(124,92,191,0.212); }
+#s-credits  { --wash-1: rgba(216,169,74,0.491); --wash-2: rgba(171,163,196,0.368); --wash-3: rgba(216,169,74,0.354); }
 
 @media (prefers-color-scheme: light) {
   /* Same drifting wash everywhere, much lower alpha -- full-strength
      colour on a near-white background reads as muddy rather than warm. */
-  #s-signin  { --wash-1: rgba(255,107,74,0.39);  --wash-2: rgba(124,92,191,0.338); --wash-3: rgba(63,184,165,0.3); }
-  #s-privacy { --wash-1: rgba(171,163,196,0.286); --wash-2: rgba(143,163,181,0.234); --wash-3: rgba(63,184,165,0.18); }
-  #s-onboard { --wash-1: rgba(216,169,74,0.325); --wash-2: rgba(171,163,196,0.286); --wash-3: rgba(143,163,181,0.27); }
-  #s-check   { --wash-1: rgba(143,163,181,0.286); --wash-2: rgba(171,163,196,0.234); --wash-3: rgba(143,163,181,0.24); }
-  #s-testintro { --wash-1: rgba(143,163,181,0.286); --wash-2: rgba(124,92,191,0.208); --wash-3: rgba(143,163,181,0.24); }
-  #s-between { --wash-1: rgba(143,163,181,0.299); --wash-2: rgba(171,163,196,0.247); --wash-3: rgba(143,163,181,0.24); }
-  #s-testresult { --wash-1: rgba(255,107,74,0.299); --wash-2: rgba(216,169,74,0.26); --wash-3: rgba(255,107,74,0.24); }
-  #s-home    { --wash-1: rgba(255,107,74,0.39);  --wash-2: rgba(124,92,191,0.338); --wash-3: rgba(63,184,165,0.3); }
-  #s-sounds  { --wash-1: rgba(216,169,74,0.286); --wash-2: rgba(171,163,196,0.247); --wash-3: rgba(124,92,191,0.24); }
-  #s-patterns { --wash-1: rgba(124,92,191,0.364); --wash-2: rgba(216,169,74,0.325); --wash-3: rgba(63,184,165,0.3); }
-  #s-settings { --wash-1: rgba(143,163,181,0.156); --wash-2: rgba(171,163,196,0.13); --wash-3: rgba(124,92,191,0.12); }
-  #s-credits  { --wash-1: rgba(216,169,74,0.234); --wash-2: rgba(171,163,196,0.182); --wash-3: rgba(216,169,74,0.18); }
+  #s-signin  { --wash-1: rgba(255,107,74,0.46);  --wash-2: rgba(124,92,191,0.399); --wash-3: rgba(63,184,165,0.354); }
+  #s-privacy { --wash-1: rgba(171,163,196,0.337); --wash-2: rgba(143,163,181,0.276); --wash-3: rgba(63,184,165,0.212); }
+  #s-onboard { --wash-1: rgba(216,169,74,0.384); --wash-2: rgba(171,163,196,0.337); --wash-3: rgba(143,163,181,0.319); }
+  #s-check   { --wash-1: rgba(143,163,181,0.337); --wash-2: rgba(171,163,196,0.276); --wash-3: rgba(143,163,181,0.283); }
+  #s-testintro { --wash-1: rgba(143,163,181,0.337); --wash-2: rgba(124,92,191,0.245); --wash-3: rgba(143,163,181,0.283); }
+  #s-between { --wash-1: rgba(143,163,181,0.353); --wash-2: rgba(171,163,196,0.291); --wash-3: rgba(143,163,181,0.283); }
+  #s-testresult { --wash-1: rgba(255,107,74,0.353); --wash-2: rgba(216,169,74,0.307); --wash-3: rgba(255,107,74,0.283); }
+  #s-home    { --wash-1: rgba(255,107,74,0.46);  --wash-2: rgba(124,92,191,0.399); --wash-3: rgba(63,184,165,0.354); }
+  #s-sounds  { --wash-1: rgba(216,169,74,0.337); --wash-2: rgba(171,163,196,0.291); --wash-3: rgba(124,92,191,0.283); }
+  #s-patterns { --wash-1: rgba(124,92,191,0.43); --wash-2: rgba(216,169,74,0.384); --wash-3: rgba(63,184,165,0.354); }
+  #s-settings { --wash-1: rgba(143,163,181,0.184); --wash-2: rgba(171,163,196,0.153); --wash-3: rgba(124,92,191,0.142); }
+  #s-credits  { --wash-1: rgba(216,169,74,0.276); --wash-2: rgba(171,163,196,0.215); --wash-3: rgba(216,169,74,0.212); }
 
   .back {
     background: rgba(255,255,255,0.6);
