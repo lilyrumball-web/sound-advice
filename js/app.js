@@ -11,6 +11,13 @@ const $$ = sel => [...document.querySelectorAll(sel)];
 const TRIALS_PER_BLOCK = 187;          // 187 x 0.8 s = 2 min 30
 const BREAK_SECONDS = 45;
 
+// The concentration test only ever runs on these four conditions --
+// matching the 2025 pilot (silence, white noise, classical, lyrical).
+// Study sessions can use any sound in the library (rain, forest, brown
+// noise, etc), but the TEST must stay confined to these four or a
+// person's tested-best result stops being comparable to anyone else's.
+const TEST_SOUNDS = ['silence', 'white', 'classical', 'lyrical'];
+
 let settings = store.getSettings();
 let user = null;
 let session = null;                    // the study session in progress
@@ -194,7 +201,6 @@ async function renderSounds() {
 
     const wrap = document.createElement('div');
     wrap.className = 'family';
-    wrap.style.setProperty('--fam', audio.FAMILY_COLORS[fam] || '');
     wrap.innerHTML = `<span class="label">${fam}</span>`;
 
     for (const s of inFam) {
@@ -254,7 +260,6 @@ let wakeLock = null;
 
 async function startSession() {
   const s = audio.soundById(settings.sound);
-  document.body.style.setProperty('--fam', audio.FAMILY_COLORS[s.family] || '');
   const btn = $('startBtn');
   const sub = $('startSub');
 
@@ -418,13 +423,20 @@ const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch 
    ================================================================ */
 
 async function fullTestSounds() {
-  const music = [];
+  // No silent fallback: swapping in rain or brown noise when a music file
+  // fails to load would quietly put some people through a different test
+  // than everyone else. The four test sounds are fixed -- if one can't
+  // load, the test refuses to run rather than substituting another sound.
+  const missing = [];
   for (const id of ['classical', 'lyrical']) {
-    if (await audio.fileAvailable(audio.soundById(id))) music.push(id);
+    if (!(await audio.fileAvailable(audio.soundById(id)))) missing.push(id);
   }
-  if (music.length >= 2) return ['silence', 'white', music[0], music[1]];
-  if (music.length === 1) return ['silence', 'white', music[0], 'rain'];
-  return ['silence', 'white', 'rain', 'brown'];
+  if (missing.length) {
+    const err = new Error('missing-test-audio');
+    err.missing = missing;
+    throw err;
+  }
+  return TEST_SOUNDS;
 }
 
 // Rotate the order so different people meet the sounds in a different
@@ -436,19 +448,56 @@ function rotate(list, by) {
 }
 
 async function beginTest(kind, soundId) {
-  const sounds = kind === 'full'
-    ? rotate(await fullTestSounds(), (settings.testCount || 0) % 4)
-    : [soundId];
+  let sounds;
+  if (kind === 'full') {
+    try {
+      sounds = rotate(await fullTestSounds(), (settings.testCount || 0) % 4);
+    } catch (err) {
+      toast('Classical or lyrical audio could not load — check your connection and try again.');
+      return;
+    }
+  } else {
+    // Single test is always one of the four test sounds, never whatever
+    // is currently selected for studying (which might be rain, forest,
+    // brown noise, etc -- those aren't part of the concentration test).
+    sounds = [TEST_SOUNDS.includes(soundId) ? soundId : 'silence'];
+  }
 
   testRun = { kind, sounds, index: 0, results: [] };
 
   $('testIntroTitle').textContent = kind === 'full' ? 'The full test' : 'Test a sound';
-  $('testPlan').innerHTML = kind === 'full'
+
+  const choiceEl = $('testSoundChoice');
+  if (kind === 'single') {
+    choiceEl.hidden = false;
+    choiceEl.innerHTML = TEST_SOUNDS.map(id => `
+      <button class="tag-btn" data-sound="${id}"
+              aria-pressed="${String(id === testRun.sounds[0])}">
+        ${audio.soundById(id).name}
+      </button>`).join('');
+    choiceEl.querySelectorAll('[data-sound]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        testRun.sounds = [btn.dataset.sound];
+        choiceEl.querySelectorAll('[data-sound]').forEach(b =>
+          b.setAttribute('aria-pressed', String(b === btn)));
+        renderTestPlan();
+      });
+    });
+  } else {
+    choiceEl.hidden = true;
+    choiceEl.innerHTML = '';
+  }
+
+  renderTestPlan();
+  go('testintro');
+}
+
+function renderTestPlan() {
+  $('testPlan').innerHTML = testRun.kind === 'full'
     ? `<strong>Four sounds, 2½ minutes each.</strong> There's a short break between them.
        About 12 minutes in total — make sure you won't be interrupted.`
-    : `<strong>${audio.soundById(soundId).name}, 2½ minutes.</strong>
+    : `<strong>${audio.soundById(testRun.sounds[0]).name}, 2½ minutes.</strong>
        Your score gets added to the sounds you've already tried.`;
-  go('testintro');
 }
 
 async function runNextBlock() {
@@ -621,26 +670,11 @@ function renderPatterns() {
     .sort((a, b) => b.v - a.v);
 
   const nm = id => audio.soundById(id).name;
-  const famOf = id => audio.soundById(id).family;
-  const dot = id => id
-    ? `<span class="fam-dot" style="background:${audio.FAMILY_COLORS[famOf(id)] || 'var(--accent)'}"></span>`
-    : '';
-
-  const bestId = best ? best.id : null;
-  const mostUsedId = mostUsed ? mostUsed[0] : null;
-  const topRatedId = avgRating.length ? avgRating[0].id : null;
-  const allMatch = bestId && mostUsedId && topRatedId &&
-    bestId === mostUsedId && mostUsedId === topRatedId;
-
-  let html = `<div class="verdict${allMatch ? ' match' : ''}">
-    <div class="verdict-row"><span class="k">Tested best</span><span class="v">${dot(bestId)}${bestId ? nm(bestId) : 'Test 2 sounds'}</span></div>
-    <div class="verdict-row"><span class="k">Most used</span><span class="v">${dot(mostUsedId)}${mostUsedId ? nm(mostUsedId) : '—'}</span></div>
-    <div class="verdict-row"><span class="k">Highest rated</span><span class="v">${dot(topRatedId)}${topRatedId ? nm(topRatedId) : 'Rate a few more'}</span></div>
+  let html = `<div class="verdict">
+    <div class="verdict-row"><span class="k">Tested best</span><span class="v">${best ? nm(best.id) : 'Test 2 sounds'}</span></div>
+    <div class="verdict-row"><span class="k">Most used</span><span class="v">${mostUsed ? nm(mostUsed[0]) : '—'}</span></div>
+    <div class="verdict-row"><span class="k">Highest rated</span><span class="v">${avgRating.length ? nm(avgRating[0].id) : 'Rate a few more'}</span></div>
   </div>`;
-
-  if (allMatch) {
-    html += `<div class="notice notice-good">All three agree — <strong>${nm(bestId)}</strong> really is your sound.</div>`;
-  }
 
   if (best && mostUsed && best.id !== mostUsed[0]) {
     html += `<div class="notice notice-warn">Interesting &mdash; you study most with
@@ -653,7 +687,7 @@ function renderPatterns() {
       avgRating.map(r => `
         <div class="bar-row">
           <span>${nm(r.id)}</span>
-          <span class="bar-track"><span class="bar-fill" style="width:${(r.v / 5) * 100}%;background:${audio.FAMILY_COLORS[famOf(r.id)] || 'var(--accent)'}"></span></span>
+          <span class="bar-track"><span class="bar-fill" style="width:${(r.v / 5) * 100}%"></span></span>
           <span class="n">${r.v.toFixed(1)}</span>
         </div>`).join('') + `</div></div>`;
   }
@@ -663,7 +697,7 @@ function renderPatterns() {
     Object.entries(minutesBy).sort((a, b) => b[1] - a[1]).map(([id, m]) => `
       <div class="bar-row">
         <span>${nm(id)}</span>
-        <span class="bar-track"><span class="bar-fill" style="width:${(m / Math.max(1, totalMin)) * 100}%;background:${audio.FAMILY_COLORS[famOf(id)] || 'var(--accent)'}"></span></span>
+        <span class="bar-track"><span class="bar-fill" style="width:${(m / Math.max(1, totalMin)) * 100}%"></span></span>
         <span class="n">${fmtMins(m)}</span>
       </div>`).join('') + `</div></div>`;
 
@@ -675,7 +709,7 @@ function renderPatterns() {
         const v = Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
         return `<div class="bar-row">
           <span>${nm(id)}</span>
-          <span class="bar-track"><span class="bar-fill" style="width:${v}%;background:${audio.FAMILY_COLORS[famOf(id)] || 'var(--accent)'}"></span></span>
+          <span class="bar-track"><span class="bar-fill" style="width:${v}%"></span></span>
           <span class="n">${v}</span></div>`;
       }).join('') + `</div></div>`;
   }
@@ -800,6 +834,9 @@ function wireEverything() {
   $('toPatterns').addEventListener('click', () => go('patterns'));
   $('toTest').addEventListener('click', () => {
     $('silentCard').hidden = !audio.needsSilentSwitchWarning();
+    // Default to the current study sound only if it's one of the four
+    // test sounds; otherwise beginTest() falls back to silence, and the
+    // testSoundChoice chips let the person switch before starting.
     window.__afterCheck = () => beginTest('single', settings.sound);
     go('check');
   });
