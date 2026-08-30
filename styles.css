@@ -514,6 +514,7 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 
 #s-home {
   position: relative;
+  isolation: isolate;
   z-index: 0;
   overflow: hidden;
   background:
@@ -535,14 +536,14 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 }
 #s-home::before {
   background: #FF6B4A;
-  opacity: 0.35;
+  opacity: 0.9; /* TEMP: turned way up to confirm these are rendering at all */
   top: -18%;
   left: -14%;
   animation: home-blob-a 20s ease-in-out infinite;
 }
 #s-home::after {
   background: #7C5CBF;
-  opacity: 0.30;
+  opacity: 0.9; /* TEMP: same, temporary */
   top: -8%;
   right: -18%;
   animation: home-blob-b 26s ease-in-out infinite;
@@ -587,8 +588,8 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
       radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.14) 0%, transparent 58%),
       var(--bg);
   }
-  #s-home::before { opacity: 0.18; }
-  #s-home::after  { opacity: 0.16; }
+  #s-home::before { opacity: 0.9; } /* TEMP: matches diagnostic above for now */
+  #s-home::after  { opacity: 0.9; } /* TEMP: matches diagnostic above for now */
   #s-home .back {
     background: rgba(255,255,255,0.6);
     border-color: rgba(19,26,33,0.12);
