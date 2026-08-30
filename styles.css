@@ -514,6 +514,7 @@ hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 
 #s-home {
   position: relative;
+  z-index: 0;
   overflow: hidden;
   background:
     radial-gradient(90% 45% at 8% 0%, rgba(63,184,165,0.22) 0%, transparent 58%),
