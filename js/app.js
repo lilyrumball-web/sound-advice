@@ -1,9 +1,9 @@
 /* Sound Advice — application
    Screens, timer, test flow, patterns. */
 
-import * as audio from './audio.js?v=21';
-import * as store from './store.js?v=21';
-import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=21';
+import * as audio from './audio.js?v=22';
+import * as store from './store.js?v=22';
+import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=22';
 
 const $  = id => document.getElementById(id);
 const $$ = sel => [...document.querySelectorAll(sel)];
@@ -23,6 +23,39 @@ let user = null;
 let session = null;                    // the study session in progress
 let testRun = null;                    // the test in progress
 let rating = { score: null, tags: [] };
+let tipiAnswers = [];                  // in-progress personality-check answers
+let tipiReturnTo = 'onboard';          // screen to go back to after the check
+
+// The TIPI (Ten Item Personality Inventory) -- Gosling, Rentfrow & Swann
+// (2003), freely usable for any purpose. Order matters and must not be
+// shuffled: reverse-scoring depends on knowing which position is which.
+const TIPI_ITEMS = [
+  { n: 1,  text: 'Extraverted, enthusiastic',          dim: 'Extraversion',        rev: false },
+  { n: 2,  text: 'Critical, quarrelsome',               dim: 'Agreeableness',       rev: true  },
+  { n: 3,  text: 'Dependable, self-disciplined',        dim: 'Conscientiousness',   rev: false },
+  { n: 4,  text: 'Anxious, easily upset',               dim: 'Emotional stability', rev: true  },
+  { n: 5,  text: 'Open to new experiences, complex',    dim: 'Openness',            rev: false },
+  { n: 6,  text: 'Reserved, quiet',                     dim: 'Extraversion',        rev: true  },
+  { n: 7,  text: 'Sympathetic, warm',                   dim: 'Agreeableness',       rev: false },
+  { n: 8,  text: 'Disorganized, careless',              dim: 'Conscientiousness',   rev: true  },
+  { n: 9,  text: 'Calm, emotionally stable',            dim: 'Emotional stability', rev: false },
+  { n: 10, text: 'Conventional, uncreative',            dim: 'Openness',            rev: true  }
+];
+
+// Reverse-score (7<->1, 6<->2, 5<->3, 4 stays), then average the two items
+// per dimension. Scoring all five costs nothing extra, even though only
+// Extraversion is needed for the headline hypothesis.
+function scoreTipi(raw) {
+  const rev = v => 8 - v;
+  const val = i => TIPI_ITEMS[i].rev ? rev(raw[i]) : raw[i];
+  const byDim = {};
+  TIPI_ITEMS.forEach((item, i) => (byDim[item.dim] = byDim[item.dim] || []).push(val(i)));
+  const scores = {};
+  for (const [dim, vals] of Object.entries(byDim)) {
+    scores[dim] = +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2);
+  }
+  return scores;
+}
 
 /* ================================================================
    Navigation
@@ -38,6 +71,7 @@ function go(name) {
   if (name === 'sounds') renderSounds();
   if (name === 'patterns') renderPatterns();
   if (name === 'settings') renderSettings();
+  if (name === 'tipi') renderTipi();
 }
 
 let toastTimer;
@@ -779,6 +813,10 @@ function renderSettings() {
     ? (pending ? `${pending} record${pending === 1 ? '' : 's'} waiting to sync` : 'Everything is synced')
     : 'Saved on this device only';
 
+  $('setTipi').textContent = (user && user.tipi)
+    ? 'Retake the personality check'
+    : 'Take the personality check (optional)';
+
   const music = audio.SOUNDS.filter(s => s.file);
   Promise.all(music.map(audio.fileAvailable)).then(av => {
     const added = music.filter((_, i) => av[i]);
@@ -792,6 +830,30 @@ function renderSettings() {
                   <span class="tiny">${c.source} &middot; ${c.licence}</span>`;
         }).join('<br><br>')
       : 'No music tracks have been added yet.';
+  });
+}
+
+function renderTipi() {
+  tipiAnswers = Array(10).fill(0);
+  $('tipiSave').disabled = true;
+
+  $('tipiList').innerHTML = TIPI_ITEMS.map((item, i) => `
+    <div class="card stack-sm">
+      <p class="small" style="color:var(--ink)"><strong>${item.n}.</strong> ${item.text}</p>
+      <div class="tipi-row" data-idx="${i}">
+        ${[1, 2, 3, 4, 5, 6, 7].map(v =>
+          `<button class="rate-btn" data-val="${v}" aria-pressed="false">${v}</button>`
+        ).join('')}
+      </div>
+    </div>`).join('');
+
+  $$('#tipiList .tipi-row').forEach(row => {
+    const idx = +row.dataset.idx;
+    row.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+      tipiAnswers[idx] = +btn.dataset.val;
+      row.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      $('tipiSave').disabled = tipiAnswers.some(v => !v);
+    }));
   });
 }
 
@@ -830,8 +892,23 @@ function wireEverything() {
     window.__afterCheck = () => beginTest('full');
     go('check');
   });
+  $('onboardTipi').addEventListener('click', () => {
+    tipiReturnTo = 'onboard';
+    go('tipi');
+  });
   $('onboardSkip').addEventListener('click', () => {
     settings.seenOnboard = true; store.saveSettings(settings); go('home');
+  });
+
+  $('tipiBack').addEventListener('click', () => go(tipiReturnTo));
+  $('tipiSkip').addEventListener('click', () => go(tipiReturnTo));
+  $('tipiSave').addEventListener('click', async () => {
+    const scores = scoreTipi(tipiAnswers);
+    user = await store.updateUser({
+      tipi: { raw: [...tipiAnswers], scores, takenAt: Date.now() }
+    });
+    toast('Saved — thanks!');
+    go(tipiReturnTo);
   });
 
   $('beepBtn').addEventListener('click', () => audio.testBeep());
@@ -908,6 +985,10 @@ function wireEverything() {
     $('silentCard').hidden = !audio.needsSilentSwitchWarning();
     window.__afterCheck = () => beginTest('full');
     go('check');
+  });
+  $('setTipi').addEventListener('click', () => {
+    tipiReturnTo = 'settings';
+    go('tipi');
   });
   $('setCredits').addEventListener('click', () => go('credits'));
   $('setInstall').addEventListener('click', installHelp);

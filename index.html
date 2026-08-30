@@ -91,8 +91,30 @@
 
       <div class="stack-sm">
         <button class="btn btn-primary" id="onboardFull">Take the full test</button>
+        <button class="btn btn-ghost" id="onboardTipi">Quick personality check (1 min, optional)</button>
         <button class="btn btn-ghost" id="onboardSkip">Skip &mdash; just let me study</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ============ PERSONALITY CHECK (TIPI) ============ -->
+  <section class="screen" id="s-tipi">
+    <div class="topbar">
+      <button class="back" id="tipiBack" aria-label="Back">&larr;</button>
+      <h2>Quick personality check</h2>
+    </div>
+    <div class="grow stack">
+      <p class="small">Totally optional, and takes about a minute. For each pair of traits
+        below, rate how much you agree that it describes you &mdash; <strong>1</strong> means
+        disagree strongly, <strong>7</strong> means agree strongly. This has no effect on your
+        sound test or your recommendation; it&rsquo;s just extra data for the science fair
+        write-up, looking at whether personality relates to which sound works best.</p>
+
+      <div class="stack" id="tipiList"></div>
+
+      <div class="grow"></div>
+      <button class="btn btn-primary" id="tipiSave" disabled>Save and continue</button>
+      <button class="btn btn-bare" id="tipiSkip">Skip this</button>
     </div>
   </section>
 
@@ -351,6 +373,7 @@
       </div>
 
       <button class="btn btn-ghost" id="setRetake">Take the full test again</button>
+      <button class="btn btn-ghost" id="setTipi">Take the personality check</button>
       <button class="btn btn-ghost" id="setCredits">Sound credits &amp; licences</button>
       <button class="btn btn-ghost" id="setInstall">How to add this to my home screen</button>
       <button class="btn btn-ghost" id="setSignOut">Sign out</button>
@@ -417,6 +440,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="js/app.js?v=21"></script>
+<script type="module" src="js/app.js?v=22"></script>
 </body>
 </html>

@@ -332,6 +332,9 @@ input[type="range"] {
 }
 .rate-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 
+.tipi-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.tipi-row .rate-btn { font-size: 1rem; }
+
 .tag-btn {
   padding: 9px 13px;
   border-radius: 20px;
