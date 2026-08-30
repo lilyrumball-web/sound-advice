@@ -1,9 +1,9 @@
 /* Sound Advice — application
    Screens, timer, test flow, patterns. */
 
-import * as audio from './audio.js';
-import * as store from './store.js';
-import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js';
+import * as audio from './audio.js?v=17';
+import * as store from './store.js?v=17';
+import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=17';
 
 const $  = id => document.getElementById(id);
 const $$ = sel => [...document.querySelectorAll(sel)];
