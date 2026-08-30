@@ -1,9 +1,9 @@
 /* Sound Advice — application
    Screens, timer, test flow, patterns. */
 
-import * as audio from './audio.js?v=22';
-import * as store from './store.js?v=22';
-import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=22';
+import * as audio from './audio.js?v=23';
+import * as store from './store.js?v=23';
+import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=23';
 
 const $  = id => document.getElementById(id);
 const $$ = sel => [...document.querySelectorAll(sel)];
@@ -205,6 +205,10 @@ function renderHome() {
     : best && best.id !== settings.sound
       ? `You focus best with ${audio.soundById(best.id).name}, based on your tests.`
       : '';
+
+  $('toTipiHome').textContent = (user && user.tipi)
+    ? 'Retake the personality check'
+    : 'Personality check (1 min, optional)';
 }
 
 /* ================================================================
@@ -864,6 +868,29 @@ function installHelp() {
     : 'Open the browser menu, then "Install app" or "Add to Home screen".', 6000);
 }
 
+/** Native share sheet where available (most phones); falls back to
+    copying the link to the clipboard on desktop browsers that don't
+    support navigator.share. */
+async function shareApp() {
+  const url = location.href.split('#')[0].split('?')[0];
+  const shareData = {
+    title: 'Sound Advice',
+    text: 'Find the sound you actually study best to — try Sound Advice, my science fair app:',
+    url
+  };
+  if (navigator.share) {
+    try { await navigator.share(shareData); }
+    catch (err) { /* person cancelled the share sheet -- nothing to do */ }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast('Link copied — paste it to share!');
+  } catch {
+    toast(`Share this link: ${url}`, 6000);
+  }
+}
+
 /* ================================================================
    Wiring
    ================================================================ */
@@ -924,8 +951,13 @@ function wireEverything() {
   $('resultDone').addEventListener('click', () => go('home'));
 
   $('soundPicker').addEventListener('click', () => go('sounds'));
+  $('shareBtn').addEventListener('click', shareApp);
   $('toSettings').addEventListener('click', () => go('settings'));
   $('toPatterns').addEventListener('click', () => go('patterns'));
+  $('toTipiHome').addEventListener('click', () => {
+    tipiReturnTo = 'home';
+    go('tipi');
+  });
   $('toTest').addEventListener('click', () => {
     $('silentCard').hidden = !audio.needsSilentSwitchWarning();
     // Default to the current study sound only if it's one of the four
@@ -992,6 +1024,7 @@ function wireEverything() {
   });
   $('setCredits').addEventListener('click', () => go('credits'));
   $('setInstall').addEventListener('click', installHelp);
+  $('setShare').addEventListener('click', shareApp);
   $('setSignOut').addEventListener('click', () => {
     store.signOut(); user = null; go('signin');
   });
