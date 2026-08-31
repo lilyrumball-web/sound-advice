@@ -239,6 +239,19 @@ function buildGraph(ctx, id, tone) {
    4. Render -> seamless loop -> WAV
    ================================================================ */
 
+// Force the very end of the raw render to match its very start, before
+// crossfading. An equal-power crossfade smooths the *loudness* at the
+// seam, but it can't fix a genuine level mismatch -- and brown noise (a
+// slow random walk) can end up almost anywhere after 24 seconds, which
+// showed up as an audible "bump" every time the loop restarted. A gentle
+// linear ramp across the whole render removes that step; the ramp itself
+// is far too slow to be audible, especially under noise.
+function closeLoop(data) {
+  const n = data.length;
+  const d = data[n - 1] - data[0];
+  for (let i = 0; i < n; i++) data[i] -= (i / (n - 1)) * d;
+}
+
 async function renderChannels(id, tone) {
   const Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const ctx = new Ctx(2, RENDER_SECONDS * SR, SR);
@@ -254,7 +267,8 @@ async function renderChannels(id, tone) {
   const chans = [];
 
   for (let c = 0; c < 2; c++) {
-    const src = rendered.getChannelData(c);
+    const src = Float32Array.from(rendered.getChannelData(c)); // copy before mutating
+    closeLoop(src);
     const dst = new Float32Array(outLen);
     dst.set(src.subarray(0, outLen));
     for (let i = 0; i < fade; i++) {

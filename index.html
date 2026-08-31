@@ -118,6 +118,28 @@
     </div>
   </section>
 
+  <!-- ============ BUG REPORT / FEEDBACK ============ -->
+  <section class="screen" id="s-feedback">
+    <div class="topbar">
+      <button class="back" data-back="settings" aria-label="Back">&larr;</button>
+      <h2 id="feedbackTitle">Report a bug</h2>
+    </div>
+    <div class="grow stack">
+      <div class="seg" id="feedbackSeg">
+        <button data-type="bug" aria-pressed="true">Bug</button>
+        <button data-type="feedback" aria-pressed="false">Feedback</button>
+      </div>
+
+      <textarea id="feedbackText" rows="7" style="width:100%"
+        placeholder="What happened? What did you tap, what sound was selected, what did you expect instead?"></textarea>
+      <p class="tiny">We'll include your device type and current sound automatically, so you
+        don't have to describe those &mdash; just what happened.</p>
+
+      <div class="grow"></div>
+      <button class="btn btn-primary" id="feedbackSend">Send</button>
+    </div>
+  </section>
+
   <!-- ============ SOUND CHECK ============ -->
   <section class="screen" id="s-check">
     <div class="topbar">
@@ -379,6 +401,8 @@
       <button class="btn btn-ghost" id="setCredits">Sound credits &amp; licences</button>
       <button class="btn btn-ghost" id="setInstall">How to add this to my home screen</button>
       <button class="btn btn-ghost" id="setShare">Share Sound Advice with a friend</button>
+      <button class="btn btn-ghost" id="setBug">Report a bug</button>
+      <button class="btn btn-ghost" id="setFeedback">Give feedback</button>
       <button class="btn btn-ghost" id="setSignOut">Sign out</button>
 
       <hr>
@@ -443,6 +467,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="js/app.js?v=24"></script>
+<script type="module" src="js/app.js?v=26"></script>
 </body>
 </html>

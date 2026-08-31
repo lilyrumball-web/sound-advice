@@ -1,9 +1,9 @@
 /* Sound Advice — application
    Screens, timer, test flow, patterns. */
 
-import * as audio from './audio.js?v=24';
-import * as store from './store.js?v=24';
-import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=24';
+import * as audio from './audio.js?v=26';
+import * as store from './store.js?v=26';
+import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=26';
 
 const $  = id => document.getElementById(id);
 const $$ = sel => [...document.querySelectorAll(sel)];
@@ -25,6 +25,7 @@ let testRun = null;                    // the test in progress
 let rating = { score: null, tags: [] };
 let tipiAnswers = [];                  // in-progress personality-check answers
 let tipiReturnTo = 'onboard';          // screen to go back to after the check
+let feedbackType = 'bug';              // 'bug' | 'feedback'
 
 // The TIPI (Ten Item Personality Inventory) -- Gosling, Rentfrow & Swann
 // (2003), freely usable for any purpose. Order matters and must not be
@@ -73,6 +74,7 @@ function go(name) {
   if (name === 'settings') renderSettings();
   if (name === 'tipi') renderTipi();
   if (name === 'onboard') renderOnboard();
+  if (name === 'feedback') renderFeedback();
 }
 
 let toastTimer;
@@ -478,19 +480,21 @@ async function fullTestSounds() {
   return TEST_SOUNDS;
 }
 
-// Rotate the order so different people meet the sounds in a different
-// sequence -- otherwise whichever sound came first would carry all the
-// "still fresh" advantage.
-function rotate(list, by) {
-  const n = list.length;
-  return list.map((_, i) => list[(i + by) % n]);
+// True per-person randomization, rather than a systematic rotation.
+function shuffle(list) {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 async function beginTest(kind, soundId) {
   let sounds;
   if (kind === 'full') {
     try {
-      sounds = rotate(await fullTestSounds(), (settings.testCount || 0) % 4);
+      sounds = shuffle(await fullTestSounds());
     } catch (err) {
       toast('Classical or lyrical audio could not load — check your connection and try again.');
       return;
@@ -501,6 +505,15 @@ async function beginTest(kind, soundId) {
     // brown noise, etc -- those aren't part of the concentration test).
     sounds = [TEST_SOUNDS.includes(soundId) ? soundId : 'silence'];
   }
+
+  // Warm up every sound in this test run right now, while the person is
+  // still reading the intro screen. Generating white/pink/brown noise for
+  // the first time takes real (if short) computation; doing that inside
+  // the tap that starts the block risks outliving the browser's "recent
+  // user gesture" window that audio playback depends on, which is what
+  // produced "Sound could not start". Warming up in advance means the
+  // actual play() call later just needs the (already-cached) result.
+  sounds.forEach(id => audio.prepare(id, settings.tone).catch(() => {}));
 
   testRun = { kind, sounds, index: 0, results: [] };
 
@@ -844,6 +857,16 @@ function renderOnboard() {
   $('onboardTipi').textContent = tipiButtonLabel('Quick personality check (1 min, optional)');
 }
 
+function renderFeedback() {
+  $('feedbackTitle').textContent = feedbackType === 'bug' ? 'Report a bug' : 'Give feedback';
+  $('feedbackText').value = '';
+  $('feedbackText').placeholder = feedbackType === 'bug'
+    ? 'What happened? What did you tap, what sound was selected, what did you expect instead?'
+    : 'Ideas, things that felt confusing, anything at all — it all helps.';
+  $$('#feedbackSeg button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.type === feedbackType)));
+}
+
 function renderTipi() {
   tipiAnswers = Array(10).fill(0);
   $('tipiSave').disabled = true;
@@ -1032,6 +1055,25 @@ function wireEverything() {
   $('setCredits').addEventListener('click', () => go('credits'));
   $('setInstall').addEventListener('click', installHelp);
   $('setShare').addEventListener('click', shareApp);
+  $('setBug').addEventListener('click', () => { feedbackType = 'bug'; go('feedback'); });
+  $('setFeedback').addEventListener('click', () => { feedbackType = 'feedback'; go('feedback'); });
+
+  $$('#feedbackSeg button').forEach(b => b.addEventListener('click', () => {
+    feedbackType = b.dataset.type; renderFeedback();
+  }));
+  $('feedbackSend').addEventListener('click', async () => {
+    const message = $('feedbackText').value.trim();
+    if (!message) { toast('Write a quick note first'); return; }
+    await store.saveFeedback({
+      type: feedbackType,
+      message,
+      currentSound: settings.sound,
+      appVersion: 'v25',
+      takenAt: Date.now()
+    });
+    toast('Thanks — got it!');
+    go('settings');
+  });
   $('setSignOut').addEventListener('click', () => {
     store.signOut(); user = null; go('signin');
   });

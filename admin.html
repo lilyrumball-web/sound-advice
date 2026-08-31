@@ -50,12 +50,16 @@
     <h2 style="margin-top:12px">By person</h2>
     <div class="card tablewrap"><table id="byUser"></table></div>
 
+    <h2 style="margin-top:12px">Bug reports &amp; feedback</h2>
+    <div class="card stack-sm" id="feedbackList"></div>
+
     <h2 style="margin-top:12px">Download</h2>
     <div class="row" style="gap:10px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" data-dl="users">Users CSV</button>
       <button class="btn btn-ghost btn-sm" data-dl="sessions">Sessions CSV</button>
       <button class="btn btn-ghost btn-sm" data-dl="tests">Tests CSV</button>
       <button class="btn btn-ghost btn-sm" data-dl="testsWithTipi">Tests + personality CSV</button>
+      <button class="btn btn-ghost btn-sm" data-dl="feedback">Feedback CSV</button>
     </div>
     <p class="tiny">The last one is the file for the extraversion analysis &mdash; one row per
       test, with that person&rsquo;s five personality scores already attached, so there&rsquo;s
@@ -67,8 +71,8 @@
 </div>
 
 <script type="module">
-import * as store from './js/store.js?v=24';
-import { SOUNDS, soundById } from './js/audio.js?v=24';
+import * as store from './js/store.js?v=26';
+import { SOUNDS, soundById } from './js/audio.js?v=26';
 
 const $ = id => document.getElementById(id);
 let data = null;
@@ -97,7 +101,7 @@ async function load() {
   $('source').textContent = data.local
     ? 'Firebase is not set up yet — showing only this device.'
     : `Live from Firebase · loaded ${new Date().toLocaleTimeString()}`;
-  tiles(); findings(); bySound(); byUser();
+  tiles(); findings(); bySound(); byUser(); feedbackList();
 }
 
 function activeUsers() {
@@ -276,6 +280,24 @@ function byUser() {
       <td>${r.most}</td>
       <td class="n">${r.extraversion === null ? '—' : r.extraversion}</td></tr>`).join('')}
     </tbody>`;
+}
+
+function feedbackList() {
+  const items = [...(data.feedback || [])].sort((a, b) => (b.takenAt || 0) - (a.takenAt || 0));
+  if (!items.length) {
+    $('feedbackList').innerHTML = '<p class="small">Nothing reported yet.</p>';
+    return;
+  }
+  $('feedbackList').innerHTML = items.map(f => `
+    <div class="card card-tight stack-sm">
+      <div class="row-between">
+        <strong style="text-transform:capitalize">${f.type || 'feedback'}</strong>
+        <span class="tiny">${f.nickname || f.userId || 'anon'} · ${f.device || '—'} ·
+          ${f.takenAt ? new Date(f.takenAt).toLocaleString() : ''}</span>
+      </div>
+      <p class="small" style="white-space:pre-wrap">${(f.message || '').replace(/</g, '&lt;')}</p>
+      ${f.currentSound ? `<span class="tiny">Sound at the time: ${nm(f.currentSound)}</span>` : ''}
+    </div>`).join('');
 }
 
 /* ---------- clean exports ----------

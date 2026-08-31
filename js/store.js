@@ -16,6 +16,7 @@ const K = {
   user:     'sa.user',
   sessions: 'sa.sessions',
   tests:    'sa.tests',
+  feedback: 'sa.feedback',
   queue:    'sa.queue',
   settings: 'sa.settings'
 };
@@ -226,6 +227,20 @@ export async function saveTest(test) {
 export const getSessions = () => read(K.sessions, []);
 export const getTests = () => read(K.tests, []);
 
+export async function saveFeedback(item) {
+  const u = currentUser();
+  const rec = {
+    id: uid(), userId: u ? u.id : 'anon', nickname: u ? u.nickname : '',
+    device: deviceInfo().kind, ...item
+  };
+  localAdd('feedback', rec);
+  queueUp('feedback', rec);
+  flushQueue().catch(() => {});
+  return rec;
+}
+
+export const getFeedback = () => read(K.feedback, []);
+
 /** Pull this person's own records down when they sign in somewhere new. */
 async function pullMine(userId) {
   if (mode !== 'cloud') return;
@@ -255,12 +270,17 @@ export const saveSettings = s => write(K.settings, s);
 
 export async function fetchAll() {
   if (mode !== 'cloud') {
-    return { users: [currentUser()].filter(Boolean), sessions: getSessions(), tests: getTests(), local: true };
+    return {
+      users: [currentUser()].filter(Boolean),
+      sessions: getSessions(), tests: getTests(), feedback: getFeedback(),
+      local: true
+    };
   }
   const { db, fs } = fb;
   const grab = async c => (await fs.getDocs(fs.collection(db, c))).docs.map(d => d.data());
-  const [users, sessions, tests] = await Promise.all([grab('users'), grab('sessions'), grab('tests')]);
-  return { users, sessions, tests, local: false };
+  const [users, sessions, tests, feedback] = await Promise.all(
+    [grab('users'), grab('sessions'), grab('tests'), grab('feedback')]);
+  return { users, sessions, tests, feedback, local: false };
 }
 
 export function toCSV(rows) {

@@ -2,7 +2,7 @@
    Keeps the app openable with no connection. Bump CACHE when you
    change any file, or phones will keep serving the old version. */
 
-const CACHE = 'sound-advice-v24';
+const CACHE = 'sound-advice-v26';
 
 const SHELL = [
   './',
@@ -10,10 +10,10 @@ const SHELL = [
   './styles.css',
   './manifest.json',
   './firebase-config.js',
-  './js/app.js?v=24',
-  './js/audio.js?v=24',
-  './js/store.js?v=24',
-  './js/gonogo.js?v=24',
+  './js/app.js?v=26',
+  './js/audio.js?v=26',
+  './js/store.js?v=26',
+  './js/gonogo.js?v=26',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './scenes/manifest.json'
