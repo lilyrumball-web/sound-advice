@@ -1,9 +1,9 @@
 /* Sound Advice — application
    Screens, timer, test flow, patterns. */
 
-import * as audio from './audio.js?v=26';
-import * as store from './store.js?v=26';
-import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=26';
+import * as audio from './audio.js?v=27';
+import * as store from './store.js?v=27';
+import { runBlock, buildScenes, TEST_SECONDS } from './gonogo.js?v=27';
 
 const $  = id => document.getElementById(id);
 const $$ = sel => [...document.querySelectorAll(sel)];
@@ -139,6 +139,10 @@ async function doSignIn() {
     const res = await store.signIn($('nickname').value, $('pin').value);
     user = res.user;
     settings = store.getSettings();
+    if (res.cloudFailed) {
+      toast('Signed in — saved on this device only for now (connection issue).', 5000);
+    }
+    updateSyncDot();
     go(settings.seenPrivacy ? (settings.seenOnboard ? 'home' : 'onboard') : 'privacy');
   } catch (e) {
     err.textContent = e.message;

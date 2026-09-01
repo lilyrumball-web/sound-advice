@@ -99,37 +99,49 @@ export async function signIn(nickname, pin) {
   const key = name.toLowerCase();
 
   if (mode === 'cloud') {
-    const { db, fs } = fb;
-    const ref = fs.doc(db, 'users', key);
-    const snap = await fs.getDoc(ref);
+    try {
+      const { db, fs } = fb;
+      const ref = fs.doc(db, 'users', key);
+      const snap = await fs.getDoc(ref);
 
-    if (snap.exists()) {
-      const u = snap.data();
-      if (u.pinHash !== pinHash) throw new Error('That nickname is taken, or the PIN is wrong.');
-      const user = { ...u, id: key };
+      if (snap.exists()) {
+        const u = snap.data();
+        if (u.pinHash !== pinHash) throw new Error('That nickname is taken, or the PIN is wrong.');
+        const user = { ...u, id: key };
+        write(K.user, user);
+        await pullMine(key);
+        await fs.setDoc(ref, { lastActive: Date.now(), device: deviceInfo() }, { merge: true });
+        return { user, returning: true };
+      }
+
+      const user = {
+        id: key, nickname: name, pinHash,
+        joined: Date.now(), lastActive: Date.now(),
+        device: deviceInfo(), recommended: null
+      };
+      await fs.setDoc(ref, user);
       write(K.user, user);
-      await pullMine(key);
-      await fs.setDoc(ref, { lastActive: Date.now(), device: deviceInfo() }, { merge: true });
-      return { user, returning: true };
+      return { user, returning: false };
+    } catch (e) {
+      // A wrong nickname/PIN combo is a real rejection and should stop
+      // here. Anything else (permission-denied, offline, a misconfigured
+      // Firestore rule that hasn't propagated yet) means the cloud isn't
+      // cooperating right now -- fall through to local-only rather than
+      // locking the person out entirely. Their data stays on this device
+      // and can sync later once the cloud side is sorted out.
+      if (e.message && e.message.includes('nickname is taken')) throw e;
+      console.warn('Cloud sign-in failed, continuing locally:', e);
+      mode = 'local';
     }
-
-    const user = {
-      id: key, nickname: name, pinHash,
-      joined: Date.now(), lastActive: Date.now(),
-      device: deviceInfo(), recommended: null
-    };
-    await fs.setDoc(ref, user);
-    write(K.user, user);
-    return { user, returning: false };
   }
 
-  // Local-only mode: one account per device.
+  // Local-only mode: one account per device. Also the fallback above.
   const existing = currentUser();
   if (existing && existing.id === key) {
     if (existing.pinHash !== pinHash) throw new Error('Wrong PIN for that nickname.');
     existing.lastActive = Date.now();
     write(K.user, existing);
-    return { user: existing, returning: true };
+    return { user: existing, returning: true, cloudFailed: true };
   }
   const user = {
     id: key, nickname: name, pinHash,
@@ -137,7 +149,7 @@ export async function signIn(nickname, pin) {
     device: deviceInfo(), recommended: null
   };
   write(K.user, user);
-  return { user, returning: false };
+  return { user, returning: false, cloudFailed: true };
 }
 
 export function signOut() {
